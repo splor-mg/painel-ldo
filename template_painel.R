@@ -28,6 +28,8 @@ exec_rec <- filter(execucao::exec_rec, ANO >= ANO_REF - 3)
   exec_rec$RECEITA_COD <- if_else(exec_rec$ANO>=2023 | is.na(exec_rec$RECEITA_COD_2), as.character(exec_rec$RECEITA_COD), as.character(exec_rec$RECEITA_COD_2))
 
 
+
+
 # BASE LDO
 ldo_sisor <- read_excel(paste("../!bases/sisor/BASE_ORCAM_RECEITA_FISCAL_",DATA,".xlsx", sep="")) #Salve o arquivo da LDO com formato xlsx, inserindo a data no nome do arquivo
   ldo_sisor$VL_REC <- ldo_sisor$`VALOR FINAL (R$)`
@@ -35,8 +37,11 @@ ldo_sisor <- read_excel(paste("../!bases/sisor/BASE_ORCAM_RECEITA_FISCAL_",DATA,
   ldo_sisor$FONTE_COD <- ldo_sisor$COD_FONTE
   ldo_sisor$RECEITA_COD <- as.character(ldo_sisor$RECEITA_COD)
 
-ldo_rec <- read_excel("../!bases/ldo_rec.xlsx") 
-  ldo_rec$RECEITA_COD <- as.character(ldo_rec$RECEITA_COD)
+
+# deixar para depois se será usado na análise
+#ldo_rec <- read_excel("../!bases/ldo_rec.xlsx") 
+#  ldo_rec$RECEITA_COD <- as.character(ldo_rec$RECEITA_COD)
+
 
 
 # BASE LOA
@@ -44,9 +49,11 @@ loa <- filter(execucao::loa_rec, ANO == ANO_REF)
   loa$VL_REC <- loa$VL_LOA_REC
 
 
+
 # BASE RECEITA
 base_rec <- bind_rows(exec_rec, loa, ldo_sisor)
 
+## == FEITO EM PYTHON == ##
 
 # TRATAMENTO DAS BASES
 
