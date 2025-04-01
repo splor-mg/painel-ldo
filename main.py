@@ -3,9 +3,14 @@ import numpy as np
 from datetime import datetime, date
 import os
 from pathlib import Path
+from R_runner import is_convenios_rec, is_intra_saude_rec
 import openpyxl
 import warnings
 warnings.filterwarnings('ignore')
+import dotenv
+
+dotenv.load_dotenv()
+
 
 # Custom package imports - these need to be properly implemented
 # from execucao import valor_painel, loa_rec  # TODO: Implement these custom package equivalents
@@ -23,9 +28,6 @@ def is_intra_saude_rec(df):
     # TODO: Implement this function based on your business logic
     return pd.Series([False] * len(df))
 
-def is_convenios_rec(df):
-    # TODO: Implement this function based on your business logic
-    return pd.Series([False] * len(df))
 
 def adiciona_desc(df, columns, overwrite=True):
     # TODO: Implement this function based on your business logic
@@ -74,8 +76,8 @@ valor_painel['valor_painel'] = np.where(
 
 
 # PARAMETERS
-fontes_convenios = list(range(1, 10)) + [16, 17, 24, 36, 37, 56, 57] + \
-                   list(range(62, 71)) + [73, 74, 92, 93, 97, 98]
+fontes_convenios = [] #list(range(1, 10)) + [16, 17, 24, 36, 37, 56, 57] + \
+                   #list(range(62, 71)) + [73, 74, 92, 93, 97, 98]
 
 
 if not valor_painel.empty:
@@ -122,8 +124,9 @@ base_analise[numeric_columns] = base_analise[numeric_columns].fillna(0).round(2)
 
 # ALERTAS
 base_analise.loc[:, 'ano'] = ANO_REF
-base_analise['INTRA_SAUDE'] = is_intra_saude_rec(base_analise)
 base_analise['CONVENIOS'] = is_convenios_rec(base_analise)
+base_analise['INTRA_SAUDE'] = is_intra_saude_rec(base_analise)
+
 
 # Create ALERTAS column with conditions
 conditions = [
@@ -164,8 +167,13 @@ choices = [
 base_analise['ALERTAS'] = np.select(conditions, choices, default="OK")
 
 # Final processing
-base_analise = adiciona_desc(base_analise, ["receita_cod", "uo_cod"], overwrite=True)
 base_analise = base_analise.drop(['ano', 'INTRA_SAUDE', 'CONVENIOS'], axis=1)
+# Verificar se é necessário filtrar
 base_analise = base_analise[
     ~((base_analise['uo_cod'] == 4461) | (base_analise['fonte_cod'] == 58))
 ] 
+
+# Create data directory if it doesn't exist
+os.makedirs('data', exist_ok=True)
+base_analise.to_csv("data/receita_analise.csv", index=False)
+base_analise.to_excel("data/receita_analise.xlsx", index=False)
