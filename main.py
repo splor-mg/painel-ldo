@@ -76,8 +76,8 @@ valor_painel['valor_painel'] = np.where(
 
 
 # PARAMETERS
-fontes_convenios = [] #list(range(1, 10)) + [16, 17, 24, 36, 37, 56, 57] + \
-                   #list(range(62, 71)) + [73, 74, 92, 93, 97, 98]
+fontes_convenios = list(range(1, 10)) + [16, 17, 24, 36, 37, 56, 57] + \
+                   list(range(62, 71)) + [73, 74, 92, 93, 97, 98]
 
 
 if not valor_painel.empty:
