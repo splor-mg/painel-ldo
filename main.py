@@ -30,18 +30,25 @@ columns_to_use = ['ano', 'uo_cod', 'receita_cod', 'fonte_cod', 'receita_desc', '
 # Equivalent columns for LDO files
 
 
-valor_painel2022 = pd.read_csv("datapackages/execucao2022/data/receita.csv.gz", compression='gzip', usecols=columns_to_use)
+
 valor_painel2023 = pd.read_csv("datapackages/execucao2023/data/receita.csv.gz", compression='gzip', usecols=columns_to_use)
 valor_painel2024 = pd.read_csv("datapackages/execucao2024/data/receita.csv.gz", compression='gzip', usecols=columns_to_use)
 valor_painel2025 = pd.read_csv("datapackages/execucao2025/data/receita.csv.gz", compression='gzip', usecols=columns_to_use)
+valor_painel2025['ano'] = '2025_loa'
 
-valor_painel_concat = pd.concat([valor_painel2022, valor_painel2023, valor_painel2024, valor_painel2025], ignore_index=True)
+valor_painel_concat = pd.concat([valor_painel2023, valor_painel2024, valor_painel2025], ignore_index=True)
 
-columns_to_use_ldo = ['ano', 'uo_cod', 'receita_cod', 'fonte_cod', 'receita_desc', 'vlr_loa_rec']
+columns_to_use_ldo = ['ano', 'uo_cod', 'receita_cod', 'fonte_cod', 'vlr_loa_rec']
 ldo_2026 = pd.read_csv("datapackages/sisor2026/data/base_orcam_receita_fiscal.csv", usecols=columns_to_use_ldo)
 
+
+columns_to_use_reestimativa = [ 'ano', 'uo_cod', 'receita_cod', 'fonte_cod', 'vlr_reest_rec']
+valor_painel2025_reestimativa = pd.read_csv("datapackages/reestimativa2025/data/reest_rec.csv", usecols=columns_to_use_reestimativa)
+valor_painel2025_reestimativa['ano'] = '2025_reest'
+
+
 # Get all columns from both dataframes
-all_columns = list(set(valor_painel_concat.columns) | set(ldo_2026.columns))
+all_columns = list(set(valor_painel_concat.columns) | set(ldo_2026.columns) | set(valor_painel2025_reestimativa.columns))
 
 # Add missing columns to each dataframe with NaN values
 for col in all_columns:
@@ -49,17 +56,21 @@ for col in all_columns:
         valor_painel_concat[col] = np.nan
     if col not in ldo_2026.columns:
         ldo_2026[col] = np.nan
+    if col not in valor_painel2025_reestimativa.columns:
+        valor_painel2025_reestimativa[col] = np.nan
 
 # Concatenate the dataframes keeping both value columns
-valor_painel = pd.concat([valor_painel_concat, ldo_2026], ignore_index=True)
-valor_painel.rename(columns={'vlr_loa_rec': 'vlr_ldo'}, inplace=True)
+valor_painel = pd.concat([valor_painel_concat, ldo_2026, valor_painel2025_reestimativa], ignore_index=True)
+valor_painel.rename(columns={'vlr_loa_rec': 'vlr_ldo', 'vlr_reest_rec': 'vlr_reest'}, inplace=True)
 
-
+# Ajusta o valor painel para o ano de 2025
 valor_painel['valor_painel'] = np.where(
     valor_painel['ano'].isin([ANO_REF_LDO-4, ANO_REF_LDO-3, ANO_REF_LDO-2]),
     valor_painel['vlr_efetivado_ajustado'], 
-    np.where(valor_painel['ano'] == ANO_REF_LDO-1, valor_painel['vlr_previsto_inicial'], 
-    valor_painel['vlr_ldo']
+    np.where(valor_painel['ano'] == '2025_loa', valor_painel['vlr_previsto_inicial'], 
+        np.where(valor_painel['ano'] == '2025_reest', valor_painel['vlr_reest'],
+            valor_painel['vlr_ldo']
+        )
     )
 )
 
@@ -115,9 +126,16 @@ numeric_columns = base_analise.select_dtypes(include=[np.number]).columns
 numeric_columns = numeric_columns.drop(['uo_cod', 'fonte_cod'])
 
 base_analise[numeric_columns] = base_analise[numeric_columns].fillna(0).round(2)
+# Reorder columns based on specific order
+column_order = ['uo_cod', 'receita_cod', 'fonte_cod', ANO_REF_LDO-3, ANO_REF_LDO-2, f"{ANO_REF_LDO-1}_reest", f"{ANO_REF_LDO-1}_loa", ANO_REF_LDO]
+base_analise = base_analise[column_order]
+
+
 
 # ALERTAS
 base_analise.loc[:, 'ano'] = ANO_REF
+
+
 base_analise['CONVENIOS'] = is_convenios_rec(base_analise)
 base_analise['INTRA_SAUDE'] = is_intra_saude_rec(base_analise)
 

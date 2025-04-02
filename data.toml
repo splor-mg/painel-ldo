@@ -1,10 +1,5 @@
 [packages]
 
-[packages.execucao2022]
-
-"path" = "https://raw.githubusercontent.com/splor-mg/dados-armazem-siafi-2022/main/datapackage.json"
-"token" = "GIT_HUB_TOKEN"
-"resources" = ["receita"]
 
 [packages.execucao2023]
 
@@ -30,4 +25,11 @@
 "path" = "https://raw.githubusercontent.com/splor-mg/dados-sisor-2026/main/datapackage.json"
 "token" = "GIT_HUB_TOKEN"
 "resources" = ["base_orcam_receita_fiscal"]
+
+[packages.reestimativa2025]
+
+"path" = "https://raw.githubusercontent.com/splor-mg/dados-reestimativa-2025/main/datapackage.json"
+"token" = "GIT_HUB_TOKEN"
+"resources" = ["reest_rec"]
+
 
