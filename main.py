@@ -3,7 +3,7 @@ import numpy as np
 from datetime import datetime, date
 import os
 from pathlib import Path
-from R_runner import is_convenios_rec, is_intra_saude_rec
+from R_runner import is_convenios_rec, is_intra_saude_rec, adiciona_desc
 import openpyxl
 import warnings
 warnings.filterwarnings('ignore')
@@ -21,17 +21,6 @@ ANO_REF = datetime.now().year
 ANO_REF_LDO = ANO_REF + 1
 DATA = date.today()
 OPERADOR = "Rodolfo"
-
-
-
-def is_intra_saude_rec(df):
-    # TODO: Implement this function based on your business logic
-    return pd.Series([False] * len(df))
-
-
-def adiciona_desc(df, columns, overwrite=True):
-    # TODO: Implement this function based on your business logic
-    return df
 
 # BASE EXECUCAO
 # TODO: Replace with proper data loading once custom packages are implemented
@@ -105,6 +94,9 @@ base_convenios = base_convenios.groupby(['ano', 'uo_cod', 'fonte_cod'])['valor_p
 base_demais = valor_painel[~valor_painel['fonte_cod'].isin(fontes_convenios)]
 base_demais = base_demais.groupby(['ano', 'uo_cod', 'receita_cod', 'fonte_cod'])['valor_painel'].sum().reset_index()
 
+base_convenios = base_convenios.astype({'uo_cod': pd.Int64Dtype(), 'fonte_cod': pd.Int64Dtype(),})
+base_demais = base_demais.astype({'uo_cod': pd.Int64Dtype(), 'fonte_cod': pd.Int64Dtype(), 'receita_cod': pd.StringDtype()})
+
 # BASE ANALISE
 base_analise = pd.concat([base_convenios, base_demais], ignore_index=True)
 base_analise['receita_cod'] = base_analise['receita_cod'].fillna('-')
@@ -120,6 +112,8 @@ base_analise = base_analise.pivot_table(
 
 # Fill NaN values with 0 and round to 2 decimal places
 numeric_columns = base_analise.select_dtypes(include=[np.number]).columns
+numeric_columns = numeric_columns.drop(['uo_cod', 'fonte_cod'])
+
 base_analise[numeric_columns] = base_analise[numeric_columns].fillna(0).round(2)
 
 # ALERTAS
@@ -166,12 +160,19 @@ choices = [
 
 base_analise['ALERTAS'] = np.select(conditions, choices, default="OK")
 
-# Final processing
-base_analise = base_analise.drop(['ano', 'INTRA_SAUDE', 'CONVENIOS'], axis=1)
+# Adiciona descrições
+base_analise['ano'] = ANO_REF
+base_analise = adiciona_desc(base_analise, ['RECEITA_COD', 'UO_COD', 'FONTE_COD'], overwrite=True)
+base_analise.columns = base_analise.columns.str.lower()
+
+# Remove colunas não necessárias
+base_analise = base_analise.drop(['ano', 'intra_saude', 'convenios'], axis=1)
 # Verificar se é necessário filtrar
 base_analise = base_analise[
     ~((base_analise['uo_cod'] == 4461) | (base_analise['fonte_cod'] == 58))
 ] 
+
+
 
 # Create data directory if it doesn't exist
 os.makedirs('data', exist_ok=True)
