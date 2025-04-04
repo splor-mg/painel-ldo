@@ -31,12 +31,8 @@ ENV/
 .venv
 
 # Data files
-*.csv
 *.csv.gz
-*.xlsx
-*.xls
 *.parquet
-*.json
 datapackages/
 
 # IDE
