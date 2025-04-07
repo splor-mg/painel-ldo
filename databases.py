@@ -226,23 +226,23 @@ def cria_base_fonte_analise(valor_painel):
         #(base_fonte_agg['INTRA_SAUDE'] == True),
         #(base_fonte_agg['fonte_cod'].isin(fontes_convenios)),
         #((base_fonte_agg['CONVENIOS'] == True) & ~base_fonte_agg['fonte_cod'].isin(fontes_convenios)),
-        ((base_fonte_agg.iloc[:, 3] > 0) & 
+        ((base_fonte_agg.iloc[:, 2] > 0) & 
+        (base_fonte_agg.iloc[:, 3] > 0) & 
         (base_fonte_agg.iloc[:, 4] > 0) & 
-        (base_fonte_agg.iloc[:, 5] > 0) & 
-        (base_fonte_agg.iloc[:, 7] == 0)),
-        (((base_fonte_agg.iloc[:, 4] > 0) & (base_fonte_agg.iloc[:, 7] == 0)) |
-        ((base_fonte_agg.iloc[:, 5] > 0) & (base_fonte_agg.iloc[:, 7] == 0))),
+        (base_fonte_agg.iloc[:, 6] == 0)),
+        (((base_fonte_agg.iloc[:, 3] > 0) & (base_fonte_agg.iloc[:, 6] == 0)) |
+        ((base_fonte_agg.iloc[:, 4] > 0) & (base_fonte_agg.iloc[:, 6] == 0))),
         (
-            (base_fonte_agg.iloc[:, 7] > 0) &
-            ((base_fonte_agg.iloc[:, 3:6].sum(axis=1) / 3) > 0) &
+            (base_fonte_agg.iloc[:, 6] > 0) &
+            ((base_fonte_agg.iloc[:, 2:5].sum(axis=1) / 3) > 0) &
             (
                 (
-                    (base_fonte_agg.iloc[:, 7] > ((base_fonte_agg.iloc[:, 3:6].sum(axis=1) / 3) * 2)) &
-                    (base_fonte_agg.iloc[:, 7] > (1.2 * base_fonte_agg.iloc[:, 3:6].max(axis=1)))
+                    (base_fonte_agg.iloc[:, 6] > ((base_fonte_agg.iloc[:, 2:5].sum(axis=1) / 3) * 2)) &
+                    (base_fonte_agg.iloc[:, 6] > (1.2 * base_fonte_agg.iloc[:, 2:5].max(axis=1)))
                 ) |
                 (
-                    (base_fonte_agg.iloc[:, 7] < (base_fonte_agg.iloc[:, 3:6].sum(axis=1) / 3 / 2)) &
-                    (base_fonte_agg.iloc[:, 7] < (0.9 * base_fonte_agg.iloc[:, 3:6].min(axis=1)))
+                    (base_fonte_agg.iloc[:, 6] < (base_fonte_agg.iloc[:, 2:5].sum(axis=1) / 3 / 2)) &
+                    (base_fonte_agg.iloc[:, 6] < (0.9 * base_fonte_agg.iloc[:, 2:5].min(axis=1)))
                 )
             )
         )
