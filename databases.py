@@ -1,15 +1,13 @@
 import pandas as pd
 import numpy as np
-from datetime import datetime, date
 import os
-from pathlib import Path
-from R_runner import is_convenios_rec, is_intra_saude_rec, adiciona_desc
 import openpyxl
 import warnings
-import dotenv
+from datetime import datetime, date
+from pathlib import Path
 warnings.filterwarnings('ignore')
+from R_runner import is_convenios_rec, is_intra_saude_rec, adiciona_desc
 
-dotenv.load_dotenv()
 
 # Custom package imports - these need to be properly implemented
 # from execucao import valor_painel, loa_rec  # TODO: Implement these custom package equivalents
@@ -230,8 +228,10 @@ def cria_base_fonte_analise(valor_painel):
         (base_fonte_agg.iloc[:, 3] > 0) & 
         (base_fonte_agg.iloc[:, 4] > 0) & 
         (base_fonte_agg.iloc[:, 6] == 0)),
+
         (((base_fonte_agg.iloc[:, 3] > 0) & (base_fonte_agg.iloc[:, 6] == 0)) |
         ((base_fonte_agg.iloc[:, 4] > 0) & (base_fonte_agg.iloc[:, 6] == 0))),
+
         (
             (base_fonte_agg.iloc[:, 6] > 0) &
             ((base_fonte_agg.iloc[:, 2:5].sum(axis=1) / 3) > 0) &

@@ -1,7 +1,11 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from rpy2.robjects import pandas2ri
 from rpy2.robjects.packages import importr
 from rpy2.robjects import StrVector
 import unidecode
+
 
 
 def clean_column_names(column_name):
