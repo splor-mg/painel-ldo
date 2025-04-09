@@ -1,10 +1,10 @@
 # Ferramenta de Processamento de Dados do Painel LDO
 
-Esta ferramenta processa dados financeiros, cria indicadores sobre a qualidade dos dados presentes e os disponibiliza para serem consumidos pelo painel-ldo ou outras ferramentas. A extração de dados é feita dos dados de execução financeira e orçamentária dos dois últimos anos (execucao), dados de reestimativa fiscal do ano corrente (reest), previsão inicial da Lei Orçamentária Anual do ano corrente e dados da Lei de Diretrizes Orçamentárias (LDO) lançados no Sistema Orçamentário (SISOR) do próximo exercício.
+Esta ferramenta processa dados financeiros e indicadores sobre a qualidade dos dados presentes e os disponibiliza para serem consumidos pelo painel-ldo ou outras ferramentas. A extração de dados é feita dos dados de execução financeira e orçamentária dos dois últimos anos (execucao), dados de reestimativa fiscal do ano corrente (reest), previsão inicial da Lei Orçamentária Anual do ano corrente e dados da Lei de Diretrizes Orçamentárias (LDO) lançados no Sistema Orçamentário (SISOR) do próximo exercício.
 
 ## Recursos
 
-- Extração de dados usando a ferramenta DPM
+- Extração de dados usando a [ferramenta DPM](https://github.com/splor-mg/dpm)
 - Processamento e análise de dados financeiros
 - Geração de arquivos de saída estruturados para análise de receitas e fontes
 - Transformação e processamento automatizado de dados
@@ -18,18 +18,22 @@ Esta ferramenta processa dados financeiros, cria indicadores sobre a qualidade d
 
 1. Clone este repositório:
    ```bash
-   git clone [repository-url]
+   git clone https://github.com/splor-mg/painel-ldo.git
    cd painel-ldo
    ```
 
-2. Instale as dependências Python:
+2. Instale as dependências Python (em venv se preferir):
    ```bash
    pip install -r requirements.txt
    ```
 
 3. Certifique-se de que a ferramenta DPM esteja instalada e configurada corretamente no PATH do seu sistema
+```bash
+dpm --version
+# dpm, version 0.0.0.post9016
+```
 
-4. Siga as instruções do arquivo `data.toml` para configurar as variáveis de ambiente "token" para ter acesso aos reposiórios privados da SPLOR.
+4. Siga as instruções do arquivo `data.toml` para configurar as variáveis de ambiente "token" para ter acesso aos repositórios privados da SPLOR.
 
 ## Uso
 
