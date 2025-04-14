@@ -38,7 +38,7 @@ jobs:
         git config user.email "actions@users.noreply.github.com"
         git add .
         git commit -m "Update data package at: $(date +%Y-%m-%dT%H:%M:%SZ)" || exit 0
-        git push origin main
+        git push origin actions-painel
     - name: Workflow failure notification
       uses: JasonEtco/create-an-issue@v2
       if: failure()
