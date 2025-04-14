@@ -1,1 +1,49 @@
+name: Updated
 
+on:
+  repository_dispatch:
+    types:
+      - trigger-workflow
+  workflow_dispatch:
+
+jobs:
+  all:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+    - name: ETL pipeline
+      env:
+        GH_PAT: ${{ secrets.GH_PAT }}
+        BITBUCKET_USER: ${{ secrets.BITBUCKET_USER }}
+        BITBUCKET_PASSWORD: ${{ secrets.BITBUCKET_PASSWORD }}
+      run: |
+        docker run \
+          -e BITBUCKET_USER=$BITBUCKET_USER \
+          -e BITBUCKET_PASSWORD=$BITBUCKET_PASSWORD \
+          -e GITHUB_PAT=$GH_PAT \
+          --rm \
+          --mount type=bind,source=${PWD},target=/project \
+          splormg/dados-sisor-2025 \
+          bash -c "\
+            Rscript -e \"remotes::install_bitbucket('dcgf/relatorios', \
+              auth_user = Sys.getenv('BITBUCKET_USER'), \
+              password = Sys.getenv('BITBUCKET_PASSWORD'))\" && \
+            pip install -r requirements.txt && \
+            python main.py extract && \
+            python main.py build"
+    - name: Publish data package
+      run: |-
+        git config user.name "Automated"
+        git config user.email "actions@users.noreply.github.com"
+        git add .
+        git commit -m "Update data package at: $(date +%Y-%m-%dT%H:%M:%SZ)" || exit 0
+        git push origin main
+    - name: Workflow failure notification
+      uses: JasonEtco/create-an-issue@v2
+      if: failure()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        RUNID: ${{ github.run_id }}
+      with:
+        filename: .github/workflow-failure.md
