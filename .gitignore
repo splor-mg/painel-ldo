@@ -60,4 +60,10 @@ htmlcov/
 .coverage.*
 .cache
 coverage.xml
-*.cover 
+*.cover
+
+# R
+*.R
+*.Rmd
+*.Rproj
+*.Rhistory
