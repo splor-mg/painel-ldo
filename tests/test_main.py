@@ -1,4 +1,4 @@
-from my_pkg import main
+from painel_ldo import main
 
 
 def test_hello():
