@@ -1,0 +1,117 @@
+{
+  "name": "reestimativa",
+  "profile": "tabular-data-package",
+  "resources": [
+    {
+      "name": "reest_rec",
+      "type": "table",
+      "profile": "tabular-data-resource",
+      "path": "data/reest_rec.csv",
+      "scheme": "file",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "hash": "sha256:3e5f7ab2ab4667631f2e12882b899cba022caec836b17b8684f9b05c0489b713",
+      "bytes": 8040034,
+      "fields": 17,
+      "rows": 39415,
+      "schema": {
+        "fields": [
+          {
+            "name": "chave",
+            "type": "string",
+            "source": "CHAVE"
+          },
+          {
+            "name": "ano",
+            "type": "integer",
+            "source": "ANO"
+          },
+          {
+            "name": "mes_cod",
+            "type": "integer",
+            "source": "MES_COD"
+          },
+          {
+            "name": "uo_cod",
+            "type": "integer",
+            "source": "UO_COD"
+          },
+          {
+            "name": "uo_sigla",
+            "type": "string",
+            "source": "UO_SIGLA"
+          },
+          {
+            "name": "receita_cod",
+            "type": "integer",
+            "source": "RECEITA_COD"
+          },
+          {
+            "name": "receita_desc",
+            "type": "string",
+            "source": "RECEITA_DESC"
+          },
+          {
+            "name": "fonte_cod",
+            "type": "integer",
+            "source": "FONTE_COD"
+          },
+          {
+            "name": "vlr_reest_rec",
+            "type": "number",
+            "source": "VL_REEST_REC"
+          },
+          {
+            "name": "tag_reest",
+            "type": "string",
+            "source": "TAG_REEST"
+          },
+          {
+            "name": "operador_reest_rec",
+            "type": "string",
+            "source": "OPERADOR_REEST_REC"
+          },
+          {
+            "name": "data_reest_rec",
+            "type": "date",
+            "source": "DATA_REEST_REC"
+          },
+          {
+            "name": "seq_reest_rec",
+            "type": "integer",
+            "source": "SEQ_REEST_REC"
+          },
+          {
+            "name": "msg_reest_rec",
+            "type": "string",
+            "source": "MSG_REEST_REC"
+          },
+          {
+            "name": "cat_org",
+            "type": "any",
+            "source": "CAT-ORG"
+          },
+          {
+            "name": "ct_og_ep_ds",
+            "type": "any",
+            "source": "CT-OG-EP-DS"
+          },
+          {
+            "name": "rec_espec",
+            "type": "any",
+            "source": "REC_ESPEC"
+          }
+        ]
+      }
+    }
+  ],
+  "updated_at": "2026-01-13T09:25:11",
+  "remote": {
+    "host": "raw.githubusercontent.com",
+    "user": "splor-mg",
+    "repo": "dados-reestimativa-2025",
+    "ref": "main",
+    "sha": "a2da570088bf3b7f74d1d89af65866131a875338"
+  }
+}
