@@ -36,6 +36,18 @@ jobs:
       - name: Definir R_HOME dinamicamente
         run: echo "R_HOME=$(R RHOME)" >> $GITHUB_ENV
 
+      - name: Cache R libs
+        uses: actions/cache@v4
+        with:
+          path: ~/R
+          key: r-libs-${{ runner.os }}
+
+      - name: Instalar dependências R
+        run: |
+          mkdir -p ~/R
+          Rscript -e ".libPaths('~/R'); install.packages('remotes', repos='https://cloud.r-project.org')"
+          Rscript -e ".libPaths('~/R'); remotes::install_github('splor-mg/relatorios', auth_token = Sys.getenv('GH_TOKEN'))"
+
       - name: Instalar Python
         uses: actions/setup-python@v5
         with:
@@ -53,23 +65,15 @@ jobs:
       - name: Instalar dependências Python
         run: poetry install
 
-      - name: Cache R libs
-        uses: actions/cache@v4
-        with:
-          path: ~/R
-          key: r-libs-${{ runner.os }}
-
-      - name: Instalar dependências R
-        run: |
-          mkdir -p ~/R
-          Rscript -e ".libPaths('~/R'); install.packages('remotes', repos='https://cloud.r-project.org')"
-          Rscript -e ".libPaths('~/R'); remotes::install_github('splor-mg/relatorios', auth_token = Sys.getenv('GH_TOKEN'))"
-
       - name: Rodar extract
-        run: poetry run task extract
+        run: |
+          export R_LIBS_USER=~/R
+          poetry run task extract
 
       - name: Rodar build
-        run: poetry run task build
+        run: |
+          export R_LIBS_USER=~/R
+          poetry run task build
 
       - name: Commit e push dos dados
         run: |
