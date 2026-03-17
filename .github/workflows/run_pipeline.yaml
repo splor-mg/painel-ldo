@@ -1,0 +1,83 @@
+name: Processamento Painel LDO
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  schedule:
+    # Todo dia às 10h no Brasil (13h UTC)
+    - cron: "17 13 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    env:
+      R_LIBS_USER: ~/R
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Git
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar Poetry
+        run: pip install poetry
+
+      - name: Cache Poetry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: poetry-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Instalar dependências Python
+        run: poetry install
+
+      - name: Instalar R
+        uses: r-lib/actions/setup-r@v2
+
+      - name: Definir R_HOME dinamicamente
+        run: echo "R_HOME=$(R RHOME)" >> $GITHUB_ENV
+
+      - name: Cache R libs
+        uses: actions/cache@v4
+        with:
+          path: ~/R
+          key: r-libs-${{ runner.os }}
+
+      - name: Instalar dependências R
+        run: |
+          mkdir -p ~/R
+          Rscript -e ".libPaths('~/R'); install.packages('remotes', repos='https://cloud.r-project.org')"
+          Rscript -e ".libPaths('~/R'); remotes::install_github('splor-mg/relatorios', auth_token = Sys.getenv('GITHUB_TOKEN'))"
+
+      - name: Rodar extract
+        run: poetry run task extract
+
+      - name: Rodar build
+        run: poetry run task build
+
+      - name: Commit e push dos dados
+        run: |
+          git add data/ datapackages/
+
+          if ! git diff --cached --quiet; then
+            git commit -m "Atualiza dados LDO - $(date -u +'%Y-%m-%d %H:%M:%S UTC') [skip ci]"
+            git push origin HEAD:main
+          else
+            echo "Sem alterações nos dados."
+          fi
