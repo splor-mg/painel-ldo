@@ -66,14 +66,14 @@ jobs:
         run: poetry install
 
       - name: Rodar extract
-        run: |
-          export R_LIBS_USER=~/R
-          poetry run task extract
+        run: poetry run task extract
+        env:
+          LD_LIBRARY_PATH: ${{ env.R_HOME }}/lib:${{ env.LD_LIBRARY_PATH }}
 
       - name: Rodar build
-        run: |
-          export R_LIBS_USER=~/R
-          poetry run task build
+        run: poetry run task build
+        env:
+          LD_LIBRARY_PATH: ${{ env.R_HOME }}/lib:${{ env.LD_LIBRARY_PATH }}
 
       - name: Commit e push dos dados
         run: |
