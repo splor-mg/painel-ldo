@@ -1,63 +1,75 @@
-# README
+# Ferramenta de Processamento de Dados do Painel LDO
 
-Short sentence describing what this project does and who it is for.
+Esta ferramenta processa dados financeiros e indicadores sobre a qualidade dos dados presentes e os disponibiliza para serem consumidos pelo painel-ldo ou outras ferramentas.
+A extração de dados é feita dos dados de execução financeira e orçamentária dos dois últimos anos (execucao), dados de reestimativa fiscal do ano corrente (reest), previsão inicial da Lei Orçamentária Anual do ano corrente e dados da Lei de Diretrizes Orçamentárias (LDO) lançados no Sistema Orçamentário (SISOR) do próximo exercício.
 
-## Context & Problem
+## Recursos
 
-Explain *why* this exists.
+- Extração de dados usando a [ferramenta DPM](https://github.com/splor-mg/dpm).
+- Processamento e análise de dados financeiros.
+- Geração de arquivos de saída estruturados para análise de receitas e fontes.
+- Transformação e processamento automatizado de dados.
 
-* What problem does it solve?
-* Who uses it?
-* What process does it automate or improve?
+## Pré-requisitos
 
-Example:
+- Python 3.x.
+- Poetry.
+- Ferramenta [dpm](https://github.com/splor-mg/dpm).
+- Pacote [R relatórios](https://github.com/splor-mg/relatorios) instalado.
+- Variaveis de ambiente `R_HOME` e `GITHUB_TOKEN` configuradas no arquivo `.env`.
 
-> This project automates the extraction and normalization data from an API, generating a clean CSV for analysis and dashboards.
+## Instalações R
 
-## Features
+Necessário realizar apenas uma vez.
 
-Bullet list of what the project does.
+```
+# Necessário ter variável de ambiente GITHUB_TOKEN configurada corretamente
+export $(grep -v '^#' .env | xargs)
+Rscript -e "dir.create('~/R', showWarnings = FALSE); .libPaths('~/R'); install.packages('remotes', repos='https://cloud.r-project.org')"
+Rscript -e ".libPaths('~/R'); remotes::install_github('splor-mg/relatorios', auth_token = Sys.getenv('GITHUB_TOKEN'))"
+export R_LIBS_USER=~/R # Necessário para rodar os comandos task extract e task build
+```
 
-* Fetches data from source X.
-* Validates and cleans records.
-* Generates CSV / JSON output.
-* Logs failures.
+## Instalação Python
 
-This is for *non-technical readers*.
-
-## Prerequisites
-
-These should be **identical in almost all repos**:
-
-- [Python 3.10+](https://www.python.org/).
-- [Poetry](https://python-poetry.org/docs/#installation).
-
-## Setup
-
-Clone the repo and install dependencies:
+1. Clone este repositório:
 
 ```bash
-# clone the repo
-git clone <repo-url>
-cd <project>
+git clone https://github.com/splor-mg/painel-ldo.git
+cd painel-ldo
+```
 
-# create env file
-cp .env.example .env
+2. Instale as dependências Python:
 
-# install dependencies
+```bash
 poetry install
-
-# activate virtual env
-eval $(poetry env activate)
 ```
 
-## Task
+## Atualizando os dados
 
-To see all project's tasks.
+1. Atualize o arquivo `data.toml` com os repositórios referentes ao ano que irá trabalhar.
+
+2. Extraia os dados:
 
 ```bash
-# Need virtual environment activated
-# otherwise run 'poetry run task list'
-task list
+# necessário apenas na primeira vez que rodar os scripts
+export R_LIBS_USER=~/R
+
+task extract
 ```
 
+3. Atualize os arquivos de dados (pasta `data/`):
+
+```bash
+# necessário apenas na primeira vez que rodar os scripts
+export R_LIBS_USER=~/R
+
+task build
+```
+
+## Arquivos de Saída
+
+A ferramenta gera os seguintes arquivos de saída na pasta `data/`:
+
+- `fonte_analise.csv` e `fonte_analise.xlsx`: Dados de análise de fontes.
+- `receita_analise.csv` e `receita_analise.xlsx`: Dados de análise de receitas.

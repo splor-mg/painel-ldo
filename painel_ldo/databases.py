@@ -14,7 +14,7 @@ from R_runner import is_convenios_rec, is_intra_saude_rec, adiciona_desc
 # from relatorios import add_de_para_receita  # TODO: Implement this custom package equivalent
 
 # CONFIGURATIONS
-ANO_REF = datetime.now().year
+ANO_REF = 2025 #datetime.now().year
 ANO_REF_LDO = ANO_REF + 1
 DATA = date.today()
 
