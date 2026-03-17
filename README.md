@@ -16,17 +16,17 @@ A extração de dados é feita dos dados de execução financeira e orçamentár
 - Poetry.
 - Ferramenta [dpm](https://github.com/splor-mg/dpm).
 - Pacote [R relatórios](https://github.com/splor-mg/relatorios) instalado.
-- Variaveis de ambiente `R_HOME` e `GITHUB_TOKEN` configuradas no arquivo `.env`.
+- Variaveis de ambiente `R_HOME` e `GH_TOKEN` configuradas no arquivo `.env`.
 
 ## Instalações R
 
 Necessário realizar apenas uma vez.
 
 ```
-# Necessário ter variável de ambiente GITHUB_TOKEN configurada corretamente
+# Necessário ter variável de ambiente GH_TOKEN configurada corretamente
 export $(grep -v '^#' .env | xargs)
 Rscript -e "dir.create('~/R', showWarnings = FALSE); .libPaths('~/R'); install.packages('remotes', repos='https://cloud.r-project.org')"
-Rscript -e ".libPaths('~/R'); remotes::install_github('splor-mg/relatorios', auth_token = Sys.getenv('GITHUB_TOKEN'))"
+Rscript -e ".libPaths('~/R'); remotes::install_github('splor-mg/relatorios', auth_token = Sys.getenv('GH_TOKEN'))"
 export R_LIBS_USER=~/R # Necessário para rodar os comandos task extract e task build
 ```
 

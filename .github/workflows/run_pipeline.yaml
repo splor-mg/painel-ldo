@@ -17,7 +17,7 @@ jobs:
 
     env:
       R_LIBS_USER: ~/R
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     steps:
       - name: Checkout do repositório
@@ -33,7 +33,7 @@ jobs:
       - name: Instalar Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
       - name: Instalar Poetry
         run: pip install poetry
@@ -63,7 +63,7 @@ jobs:
         run: |
           mkdir -p ~/R
           Rscript -e ".libPaths('~/R'); install.packages('remotes', repos='https://cloud.r-project.org')"
-          Rscript -e ".libPaths('~/R'); remotes::install_github('splor-mg/relatorios', auth_token = Sys.getenv('GITHUB_TOKEN'))"
+          Rscript -e ".libPaths('~/R'); remotes::install_github('splor-mg/relatorios', auth_token = Sys.getenv('GH_TOKEN'))"
 
       - name: Rodar extract
         run: poetry run task extract
