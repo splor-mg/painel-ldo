@@ -144,12 +144,12 @@
     }
   ],
   "owner_org": "secretaria-de-estado-de-planejamento-e-gestao-seplag",
-  "updated_at": "2026-03-17T10:39:35",
+  "updated_at": "2026-03-19T10:29:38",
   "remote": {
     "host": "raw.githubusercontent.com",
     "user": "splor-mg",
     "repo": "dados-sisor-2026",
     "ref": "main",
-    "sha": "29e37fd58ac01be6369ef6c1cfe4006309758b87"
+    "sha": "aef4909a129286e67fd365bd5efbdd5a61d64c9f"
   }
 }
