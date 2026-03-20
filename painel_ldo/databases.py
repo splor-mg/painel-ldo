@@ -14,12 +14,15 @@ from R_runner import is_convenios_rec, is_intra_saude_rec, adiciona_desc
 # from relatorios import add_de_para_receita  # TODO: Implement this custom package equivalent
 
 # CONFIGURATIONS
+# TODO: TRAZER DESCRIÇÃO DA FONTE DAS TABELAS AUXILIARES
 ANO_REF = 2025 #datetime.now().year
 ANO_REF_LDO = ANO_REF + 1
 DATA = date.today()
 
 
 # PARAMETERS
+# TODO: LAURA revisa as fontes de convenio
+# convenios tem que ser arrecadados em fontes de
 fontes_convenios = list(range(1, 10)) + [16, 17, 24, 36, 37, 56, 57] + \
                    list(range(62, 71)) + [73, 74, 92, 93, 97, 98]
 
@@ -31,7 +34,7 @@ fontes_convenios = list(range(1, 10)) + [16, 17, 24, 36, 37, 56, 57] + \
 
 def carrega_trata_dados():
 
-    columns_to_use = ['ano', 'uo_cod', 'receita_cod', 'fonte_cod', 'receita_desc', 'receita_cod_formatado', 'vlr_previsto_inicial', 'vlr_efetivado_ajustado']
+    columns_to_use = ['ano', 'uo_cod', 'receita_cod', 'fonte_cod', 'receita_desc', 'receita_cod_formatado', 'vlr_previsto_inicial', 'vlr_efetivado_ajustado'] # vlr_previsto_inicial LOA, vlr_efetivado_ajustado o que arrecadou
 
     valor_painel2023 = pd.read_csv("datapackages/execucao2023/data/receita.csv.gz", compression='gzip', usecols=columns_to_use)
     valor_painel2024 = pd.read_csv("datapackages/execucao2024/data/receita.csv.gz", compression='gzip', usecols=columns_to_use)
@@ -75,7 +78,7 @@ def carrega_trata_dados():
     )
 
     if not valor_painel.empty:
-        valor_painel['uo_cod'] = np.where(valor_painel['uo_cod'] == 9999, 9901, valor_painel['uo_cod'])
+        valor_painel['uo_cod'] = np.where(valor_painel['uo_cod'] == 9999, 9901, valor_painel['uo_cod']) # armazem 9999 é igual 9901 RGE Receita geral do estado
         return valor_painel
 
     else:
@@ -83,7 +86,7 @@ def carrega_trata_dados():
         exit(1)
 
 
-def cria_base_receita_analise(valor_painel):
+def cria_base_receita_analise(valor_painel): # análise mais da DCAF
 
     # TRATAMENTO DAS BASES
     # BASE CONVENIOS
@@ -120,7 +123,7 @@ def cria_base_receita_analise(valor_painel):
     # Reorder columns based on specific order
     column_order = ['uo_cod', 'receita_cod', 'fonte_cod', ANO_REF_LDO-3, ANO_REF_LDO-2, f"{ANO_REF_LDO-1}_reest", f"{ANO_REF_LDO-1}_loa", ANO_REF_LDO]
     base_analise = base_analise[column_order]
-
+    breakpoint()
 
 
     # ALERTAS
