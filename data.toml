@@ -1,38 +1,32 @@
 [packages]
 
 
-[packages.execucao2023]
+[packages.siafi_2024]
 
 # repositório dados-armazem-siafi 2 anos anteriores à atualização do painel
-"path" = "https://raw.githubusercontent.com/splor-mg/dados-armazem-siafi-2023/main/datapackage.json"
-"token" = "GH_TOKEN"
-"resources" = ["receita"]
-
-[packages.execucao2024]
-
-# repositório dados-armazem-siafi 1 ano anterior à atualização do painel
 "path" = "https://raw.githubusercontent.com/splor-mg/dados-armazem-siafi-2024/main/datapackage.json"
 "token" = "GH_TOKEN"
 "resources" = ["receita"]
 
-[packages.execucao2025]
+[packages.siafi_2025]
 
-# repositório dados-armazem-siafi no ano da atualização do painel
+# repositório dados-armazem-siafi 1 ano anterior à atualização do painel
 "path" = "https://raw.githubusercontent.com/splor-mg/dados-armazem-siafi-2025/main/datapackage.json"
 "token" = "GH_TOKEN"
 "resources" = ["receita"]
 
+[packages.siafi_2026]
 
-[packages.sisor2026]
+# repositório dados-armazem-siafi no ano da atualização do painel
+"path" = "https://raw.githubusercontent.com/splor-mg/dados-armazem-siafi-2026/main/datapackage.json"
+"token" = "GH_TOKEN"
+"resources" = ["receita"]
 
-# repositório sisor do ano da ldo em produção (ano seguinte ao da atualização do painel)
-"path" = "https://raw.githubusercontent.com/splor-mg/dados-sisor-2026/main/datapackage.json"
-"resources" = ["base_orcam_receita_fiscal"]
 
-[packages.reestimativa2025]
+[packages.reestimativa_2026]
 
-# repositório dados-reestimativa-2025 no ano da atualização do painel
-"path" = "https://raw.githubusercontent.com/splor-mg/dados-reestimativa-2025/main/datapackage.json"
+# repositório dados-reestimativa-2026 no ano da atualização do painel
+"path" = "https://raw.githubusercontent.com/splor-mg/dados-reestimativa-2026/main/datapackage.json"
 "token" = "GH_TOKEN"
 "resources" = ["reest_rec"]
 

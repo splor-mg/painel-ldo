@@ -1,0 +1,96 @@
+{
+  "name": "dados-armazem-siafi-2026",
+  "title": "Sistema Integrado de Administração Financeira – SIAFI 2026",
+  "profile": "tabular-data-package",
+  "resources": [
+    {
+      "name": "receita",
+      "type": "table",
+      "title": "receita",
+      "profile": "tabular-data-resource",
+      "path": "data/receita.csv.gz",
+      "scheme": "file",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "compression": "gz",
+      "encoding": "utf-8",
+      "hash": "sha256:9381cbbd8f76cc605813c0e0129a285459116f0dd3308e64e088de5f4adb82ad",
+      "bytes": 68579,
+      "fields": 12,
+      "rows": 2536,
+      "schema": {
+        "fields": [
+          {
+            "name": "ano",
+            "type": "integer",
+            "source": "Ano de Exercício"
+          },
+          {
+            "name": "mes_cod",
+            "type": "integer",
+            "source": "Mês - Numérico"
+          },
+          {
+            "name": "uo_cod",
+            "type": "integer",
+            "source": "Unidade Orçamentária - Código"
+          },
+          {
+            "name": "fonte_cod",
+            "type": "integer",
+            "source": "Fonte Recurso - Código"
+          },
+          {
+            "name": "receita_cod",
+            "type": "integer",
+            "source": "Classificação Receita - Código"
+          },
+          {
+            "name": "receita_desc",
+            "type": "string",
+            "source": "Classificação Receita - Descrição"
+          },
+          {
+            "name": "receita_cod_formatado",
+            "type": "string",
+            "source": "Classificação Receita - Formatado"
+          },
+          {
+            "name": "vlr_previsto_inicial",
+            "type": "number",
+            "source": "Valor Previsto Inicial"
+          },
+          {
+            "name": "vlr_previsto_adicional",
+            "type": "number",
+            "source": "Valor Previsto Adicional"
+          },
+          {
+            "name": "vlr_previsto_atualizado",
+            "type": "number",
+            "source": "Valor Previsto Atualizado"
+          },
+          {
+            "name": "vlr_contabilizado",
+            "type": "number",
+            "source": "Valor Contabilizado"
+          },
+          {
+            "name": "vlr_efetivado_ajustado",
+            "type": "number",
+            "source": "Valor Efetivado Ajustado"
+          }
+        ]
+      }
+    }
+  ],
+  "owner_org": "secretaria-de-estado-de-planejamento-e-gestao-seplag",
+  "updated_at": "2026-03-23T10:45:35",
+  "remote": {
+    "host": "raw.githubusercontent.com",
+    "user": "splor-mg",
+    "repo": "dados-armazem-siafi-2026",
+    "ref": "main",
+    "sha": "990a43d973a62a938899fb7e37c7130808586e8e"
+  }
+}
