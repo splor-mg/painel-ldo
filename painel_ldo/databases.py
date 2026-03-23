@@ -236,6 +236,8 @@ def cria_base_receita_analise(valor_painel): # análise mais da DCAF
         ~((base_analise['uo_cod'] == 4461) | (base_analise['fonte_cod'] == 58))
     ]
 
+    base_analise.insert(0, 'ano_ref', ANO_REF_LDO)
+
     # Create data directory if it doesn't exist
     os.makedirs('data', exist_ok=True)
     base_analise.to_csv("data/receita_analise.csv", index=False)
@@ -326,6 +328,7 @@ def cria_base_fonte_analise(valor_painel):
     #    ~((base_fonte_agg['uo_cod'] == 4461) | (base_fonte_agg['fonte_cod'] == 58))
     #]
 
+    base_fonte_agg.insert(0, 'ano_ref', ANO_REF_LDO)
 
     # Create data directory if it doesn't exist
     os.makedirs('data', exist_ok=True)
