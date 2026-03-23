@@ -1,3 +1,4 @@
+from frictionless import Package
 import pandas as pd
 import numpy as np
 import os
@@ -15,7 +16,7 @@ from R_runner import is_convenios_rec, is_intra_saude_rec, adiciona_desc
 
 # CONFIGURATIONS
 # TODO: TRAZER DESCRIÇÃO DA FONTE DAS TABELAS AUXILIARES
-ANO_REF = 2025 #datetime.now().year
+ANO_REF = datetime.now().year # Year when the analysis will be based on.
 ANO_REF_LDO = ANO_REF + 1
 DATA = date.today()
 
@@ -27,51 +28,79 @@ fontes_convenios = list(range(1, 10)) + [16, 17, 24, 36, 37, 56, 57] + \
                    list(range(62, 71)) + [73, 74, 92, 93, 97, 98]
 
 
-# BASE EXECUCAO
 
-
-# Equivalent columns for LDO files
+def build_df(datapackage, columns_to_use):
+    # TODO: Build datapackage folders name without years because every year we'll have to change the code.
+    package = Package(f'datapackages/{datapackage}/datapackage.json')
+    resource = package.get_resource(package.resource_names[0])
+    df = resource.to_pandas()
+    df = df[columns_to_use]
+    if datapackage.endswith(str(ANO_REF)):
+        df['ano'] = datapackage
+    return df
 
 def carrega_trata_dados():
 
-    columns_to_use = ['ano', 'uo_cod', 'receita_cod', 'fonte_cod', 'receita_desc', 'receita_cod_formatado', 'vlr_previsto_inicial', 'vlr_efetivado_ajustado'] # vlr_previsto_inicial LOA, vlr_efetivado_ajustado o que arrecadou
 
-    valor_painel2023 = pd.read_csv("datapackages/execucao2023/data/receita.csv.gz", compression='gzip', usecols=columns_to_use)
-    valor_painel2024 = pd.read_csv("datapackages/execucao2024/data/receita.csv.gz", compression='gzip', usecols=columns_to_use)
-    valor_painel2025 = pd.read_csv("datapackages/execucao2025/data/receita.csv.gz", compression='gzip', usecols=columns_to_use)
-    valor_painel2025['ano'] = '2025_loa'
+    # Load, filter columns and concatenate siafi data
+    siafi_columns_to_use = ['ano', 'uo_cod', 'receita_cod', 'fonte_cod', 'receita_desc', 'receita_cod_formatado', 'vlr_previsto_inicial', 'vlr_efetivado_ajustado'] # vlr_previsto_inicial LOA, vlr_efetivado_ajustado o que arrecadou
 
-    valor_painel_concat = pd.concat([valor_painel2023, valor_painel2024, valor_painel2025], ignore_index=True)
+    siafi_dfs= []
+    for year in range(ANO_REF, ANO_REF -3, -1): #(ANO_REF, ANO_REF -1, ANO_REF -2)
+        siafi_df = build_df(f'siafi_{year}', siafi_columns_to_use)
+        siafi_dfs.append(siafi_df)
+    siafi_df = pd.concat(siafi_dfs, ignore_index=True)
 
-    columns_to_use_ldo = ['ano', 'uo_cod', 'receita_cod', 'fonte_cod', 'vlr_loa_rec']
-    ldo_2026 = pd.read_csv("datapackages/sisor2026/data/base_orcam_receita_fiscal.csv", usecols=columns_to_use_ldo)
+    # Load and filter columns reestimativa data
+    reestimativa_columns_to_use = ['ano', 'uo_cod', 'receita_cod', 'fonte_cod', 'vlr_reest_rec']
+    reestimativa_df = build_df(f'reestimativa_{ANO_REF}', reestimativa_columns_to_use)
 
-    columns_to_use_reestimativa = [ 'ano', 'uo_cod', 'receita_cod', 'fonte_cod', 'vlr_reest_rec']
-    valor_painel2025_reestimativa = pd.read_csv("datapackages/reestimativa2025/data/reest_rec.csv", usecols=columns_to_use_reestimativa)
-    valor_painel2025_reestimativa['ano'] = '2025_reest'
+    # Load and filter columns ppo data
+    # TODO: When ppo data come from dados-ppo call fields name snake_small_case
+    ppo_columns_to_use = ['Ano', 'Código da Unidade', 'Classificação da Receita', 'Fonte', 'Valor LDO']
+    ppo_df = build_df(f'ppo_{ANO_REF_LDO}', ppo_columns_to_use)
+    ppo_df.rename(columns={'Ano': 'ano',
+                           'Código da Unidade': 'uo_cod',
+                           'Classificação da Receita': 'receita_cod',
+                           'Fonte': 'fonte_cod',
+                           'Valor LDO': 'vlr_loa_rec'
+                           }, inplace=True)
+    ppo_df['receita_cod'] = (
+        ppo_df['receita_cod']
+        .str.replace('.', '', regex=False)
+        .astype('Int64')  # nullable integer type
+    ) # Remove dots from receita_cod to match siafi format
 
     # Get all columns from both dataframes
-    all_columns = list(set(valor_painel_concat.columns) | set(ldo_2026.columns) | set(valor_painel2025_reestimativa.columns))
+    all_columns = list(set(siafi_columns_to_use) |
+                       set(reestimativa_columns_to_use) |
+                       # TODO: When ppo data come from dados-ppo call fields name snake_small_case
+                       # Here ppo_df.columns will turn to just ppo_columns_to_use
+                       set(ppo_df.columns)
+                    )
 
     # Add missing columns to each dataframe with NaN values
     for col in all_columns:
-        if col not in valor_painel_concat.columns:
-            valor_painel_concat[col] = np.nan
-        if col not in ldo_2026.columns:
-            ldo_2026[col] = np.nan
-        if col not in valor_painel2025_reestimativa.columns:
-            valor_painel2025_reestimativa[col] = np.nan
+        if col not in siafi_columns_to_use:
+            siafi_df[col] = np.nan
+        if col not in reestimativa_columns_to_use:
+            reestimativa_df[col] = np.nan
+        # TODO: When ppo data come from dados-ppo call fields name snake_small_case
+        # Here ppo_df.columns will turn to just ppo_columns_to_use
+        if col not in ppo_df.columns:
+            ppo_df[col] = np.nan
 
     # Concatenate the dataframes keeping both value columns
-    valor_painel = pd.concat([valor_painel_concat, ldo_2026, valor_painel2025_reestimativa], ignore_index=True)
+    valor_painel = pd.concat([siafi_df, reestimativa_df, ppo_df], ignore_index=True)
+    # Valor LDO == vlor_loa_rec
     valor_painel.rename(columns={'vlr_loa_rec': 'vlr_ldo', 'vlr_reest_rec': 'vlr_reest'}, inplace=True)
 
     # Ajusta o valor painel para o ano de 2025
     valor_painel['valor_painel'] = np.where(
         valor_painel['ano'].isin([ANO_REF_LDO-4, ANO_REF_LDO-3, ANO_REF_LDO-2]),
         valor_painel['vlr_efetivado_ajustado'],
-        np.where(valor_painel['ano'] == '2025_loa', valor_painel['vlr_previsto_inicial'],
-            np.where(valor_painel['ano'] == '2025_reest', valor_painel['vlr_reest'],
+        np.where(valor_painel['ano'].str.startswith('siafi'), valor_painel['vlr_previsto_inicial'],
+            np.where(valor_painel['ano'].str.startswith('reestimativa'), valor_painel['vlr_reest'],
                 valor_painel['vlr_ldo']
             )
         )
@@ -121,9 +150,9 @@ def cria_base_receita_analise(valor_painel): # análise mais da DCAF
 
     base_analise[numeric_columns] = base_analise[numeric_columns].fillna(0).round(2)
     # Reorder columns based on specific order
-    column_order = ['uo_cod', 'receita_cod', 'fonte_cod', ANO_REF_LDO-3, ANO_REF_LDO-2, f"{ANO_REF_LDO-1}_reest", f"{ANO_REF_LDO-1}_loa", ANO_REF_LDO]
+    column_order = ['uo_cod', 'receita_cod', 'fonte_cod', ANO_REF - 2, ANO_REF - 1, f"reestimativa_{ANO_REF}", f"siafi_{ANO_REF}", ANO_REF_LDO]
+    # breakpoint()
     base_analise = base_analise[column_order]
-    breakpoint()
 
 
     # ALERTAS
@@ -212,7 +241,7 @@ def cria_base_fonte_analise(valor_painel):
 
     base_fonte_agg[numeric_columns] = base_fonte_agg[numeric_columns].fillna(0).round(2)
     # Reorder columns based on specific order
-    column_order = ['uo_cod', 'fonte_cod', ANO_REF_LDO-3, ANO_REF_LDO-2, f"{ANO_REF_LDO-1}_reest", f"{ANO_REF_LDO-1}_loa", ANO_REF_LDO]
+    column_order = ['uo_cod', 'fonte_cod', ANO_REF - 2, ANO_REF - 1, f"reestimativa_{ANO_REF}", f"siafi_{ANO_REF}", ANO_REF_LDO]
     base_fonte_agg = base_fonte_agg[column_order]
 
 
