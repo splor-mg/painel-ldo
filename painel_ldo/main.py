@@ -1,6 +1,6 @@
 import argparse
 import subprocess
-from databases import carrega_trata_dados, cria_base_fonte_analise, cria_base_receita_analise
+from databases import carrega_trata_dados, cria_base_fonte_analise, cria_base_receita_analise, build_toml
 
 
 def build_command():
@@ -22,7 +22,7 @@ def extract_command():
 
 def main():
     parser = argparse.ArgumentParser(description='LDO Panel data processing tool')
-    parser.add_argument('command', choices=['extract', 'build'],
+    parser.add_argument('command', choices=['toml', 'extract', 'build'],
                         help="'extract' to run dpm install, 'build' to process data")
 
     args = parser.parse_args()
@@ -31,6 +31,9 @@ def main():
         extract_command()
     elif args.command == 'build':
         build_command()
+    elif args.command == 'toml':
+        build_toml()
+
 
 
 if __name__ == '__main__':

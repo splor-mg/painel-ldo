@@ -1,4 +1,5 @@
 from frictionless import Package
+import tomli_w
 import pandas as pd
 import numpy as np
 import os
@@ -27,6 +28,26 @@ DATA = date.today()
 fontes_convenios = list(range(1, 10)) + [16, 17, 24, 36, 37, 56, 57] + \
                    list(range(62, 71)) + [73, 74, 92, 93, 97, 98]
 
+
+def build_toml():
+    config = {"packages": {}}
+
+    for year in range(ANO_REF - 2, ANO_REF +1):
+        config["packages"][f"siafi_{year}"] = {
+            "path": f"https://raw.githubusercontent.com/splor-mg/dados-armazem-siafi-{year}/main/datapackage.json",
+            "token": "GH_TOKEN",
+            "resources": ["receita"],
+        }
+        if year == ANO_REF:
+            config["packages"][f"reestimativa_{year}"] = {
+                "path": f"https://raw.githubusercontent.com/splor-mg/dados-reestimativa-{year}/main/datapackage.json",
+                "token": "GH_TOKEN",
+                "resources": ["reest_rec"],
+            }
+        # TODO: Add ppo datapackage when it was available in dados-ppo repository
+
+    with open("data.toml", "wb") as f:
+        tomli_w.dump(config, f)
 
 
 def build_df(datapackage, columns_to_use):
