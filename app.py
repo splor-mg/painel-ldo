@@ -64,7 +64,7 @@ def load_aux_data(file_path):
         return df_aux[['CD_FONTE', 'Analise DCMEFO']]
     except FileNotFoundError:
         st.error(
-            f"⚠️ Arquivo auxiliar '{file_path}' não encontrado. Verifique se ele está na pasta 'data'.")
+            f"⚠️ Arquivo auxiliar '{file_path}' não encontrado. Verifique o caminho da pasta.")
         st.stop()
     except Exception as e:
         st.error(f"⚠️ Erro ao ler a base auxiliar: {e}")
@@ -78,7 +78,7 @@ def load_data(file_path, df_aux):
         df = pd.read_csv(file_path)
     except FileNotFoundError:
         st.error(
-            f"⚠️ Arquivo principal '{file_path}' não encontrado. Verifique se ele está na pasta 'data'.")
+            f"⚠️ Arquivo principal '{file_path}' não encontrado. Verifique o caminho da pasta.")
         st.stop()
 
     if 'fonte_cod' in df.columns:
@@ -110,8 +110,8 @@ def load_data(file_path, df_aux):
     return df
 
 
-# Caminhos dos arquivos
-ARQUIVO_AUXILIAR = 'data/tab_auxiliar_fte_dcmefo.csv'
+# Caminhos dos arquivos atualizados
+ARQUIVO_AUXILIAR = 'datapackages/tabelas_auxiliares/tab_auxiliar_fte_dcmefo.csv'
 ARQUIVO_RECEITA = 'data/receita_analise.csv'
 ARQUIVO_FONTE = 'data/fonte_analise.csv'
 
@@ -125,7 +125,7 @@ df_fonte = load_data(ARQUIVO_FONTE, df_auxiliar)
 
 
 def exibir_resumo_alertas(df):
-    st.markdown("### Resumo de Alertas")
+    st.markdown("### 📊 Resumo de Alertas")
     alert_counts = df['alertas'].value_counts().reset_index()
     alert_counts.columns = ['Alerta', 'Quantidade']
 
@@ -215,7 +215,7 @@ def tela_visao_geral():
 
     col1, col2 = st.columns([0.8, 0.2])
     with col1:
-        st.markdown("### Detalhamento (Visão Geral)")
+        st.markdown("### 📋 Detalhamento (Visão Geral)")
     with col2:
         st.download_button(
             label="📥 Exportar para CSV",
@@ -224,7 +224,6 @@ def tela_visao_geral():
             mime='text/csv'
         )
 
-    # Exibe a tabela aplicando a formatação visual
     st.dataframe(formatar_tabela_ptbr(df_filtrado, colunas_finais),
                  use_container_width=True, hide_index=True)
 
@@ -251,7 +250,6 @@ def tela_fonte_recursos():
             mime='text/csv'
         )
 
-    # Exibe a tabela aplicando a formatação visual
     st.dataframe(formatar_tabela_ptbr(df_filtrado, colunas_finais),
                  use_container_width=True, hide_index=True)
 
