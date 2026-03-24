@@ -1,0 +1,54 @@
+{
+  "resources": [
+    {
+      "name": "orcamento_receita",
+      "type": "table",
+      "path": "data/Orcamento_Receita.csv",
+      "scheme": "file",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8-sig",
+      "dialect": {
+        "csv": {
+          "delimiter": ";"
+        }
+      },
+      "schema": {
+        "fields": [
+          {
+            "name": "Ano",
+            "type": "integer"
+          },
+          {
+            "name": "Código da Unidade",
+            "type": "integer"
+          },
+          {
+            "name": "Unidade Orçamentária",
+            "type": "string"
+          },
+          {
+            "name": "Classificação da Receita",
+            "type": "string"
+          },
+          {
+            "name": "Descrição da Receita",
+            "type": "string"
+          },
+          {
+            "name": "Fonte",
+            "type": "integer"
+          },
+          {
+            "name": "Valor LDO",
+            "type": "integer"
+          },
+          {
+            "name": "Metodologia de cálculo e premissas utilizadas",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ]
+}

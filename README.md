@@ -20,10 +20,18 @@ A extração de dados é feita dos dados de execução financeira e orçamentár
 
 ## Instalações R
 
-Necessário realizar apenas uma vez.
+Os comandos abaixo deverão ser executados apenas a primeira vez (durante o setup do repositório na máquina).
+
+Antes de rodar os comandos é necessário ter variável de ambiente GH_TOKEN configurada corretamente no arquivo .env.
+Para isso, gere um token (fine-granted) nas configurações de GitHub com todos os repositórios necessários para a atualização, tais como:
+
+- [Pacote Relatório (R)](https://github.com/splor-mg/relatorios).
+- [dados-armazem-siafi](https://github.com/orgs/splor-mg/repositories?q=dados-armazem-siafi) com o(s) ano(s) correspondente(s) às necessidades.
+- [dados-reestimativa](https://github.com/orgs/splor-mg/repositories?q=dados-reestimativa) com o(s) ano(s) correspondente(s) às necessidades.
+- dados-ppo (ainda manual).
+
 
 ```
-# Necessário ter variável de ambiente GH_TOKEN configurada corretamente
 export $(grep -v '^#' .env | xargs)
 Rscript -e "dir.create('~/R', showWarnings = FALSE); .libPaths('~/R'); install.packages('remotes', repos='https://cloud.r-project.org')"
 Rscript -e ".libPaths('~/R'); remotes::install_github('splor-mg/relatorios', auth_token = Sys.getenv('GH_TOKEN'))"
@@ -47,24 +55,32 @@ poetry install
 
 ## Atualizando os dados
 
-1. Atualize o arquivo `data.toml` com os repositórios referentes ao ano que irá trabalhar.
+1. Crie o arquivo `data.toml`[^1]:
+
+```bash
+task toml
+```
+
+[^1]: Arquivo `data.toml` necessário para execução dos comandos `task extract` e `task build` deverá ser gerado dinamicamente via comando `task toml`.
 
 2. Extraia os dados:
 
 ```bash
-# necessário apenas na primeira vez que rodar os scripts
-export R_LIBS_USER=~/R
-
 task extract
 ```
 
 3. Atualize os arquivos de dados (pasta `data/`):
 
 ```bash
-# necessário apenas na primeira vez que rodar os scripts
-export R_LIBS_USER=~/R
-
 task build
+```
+
+4. Rode tudo de uma única vez
+
+Se preferir rodar os comandos em sequência, substitua os comandos acima por:
+
+```bash
+task painel
 ```
 
 ## Arquivos de Saída
