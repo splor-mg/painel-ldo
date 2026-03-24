@@ -72,7 +72,7 @@ jobs:
           LD_LIBRARY_PATH: ${{ env.R_HOME }}/lib:${{ env.LD_LIBRARY_PATH }}
 
       - name: Rodar build
-        run: poetry run task build
+        run: poetry run task painel
         env:
           R_LIBS_USER: ~/R
           LD_LIBRARY_PATH: ${{ env.R_HOME }}/lib:${{ env.LD_LIBRARY_PATH }}
