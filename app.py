@@ -255,7 +255,7 @@ def tela_fonte_recursos():
 
 
 # -----------------------------------------------------------------------------
-# Menu de Navegação
+# Menu de Navegação Lateral
 # -----------------------------------------------------------------------------
 st.sidebar.title("Navegação")
 menu = st.sidebar.radio("Selecione a Página:", [
