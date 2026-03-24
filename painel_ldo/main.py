@@ -1,7 +1,9 @@
+from dotenv import load_dotenv
 import argparse
 import subprocess
 from databases import carrega_trata_dados, cria_base_fonte_analise, cria_base_receita_analise, build_toml
 
+load_dotenv()
 
 def build_command():
     valor_painel = carrega_trata_dados()

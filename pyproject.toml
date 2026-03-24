@@ -61,7 +61,7 @@ format = { cmd = 'ruff format', help = 'Formats code according to code style con
 pre_test = { cmd = 'task lint', help = 'Runs linters before running the tests.' }
 test = { cmd = 'pytest -s -x -vv', help = 'Runs unit tests.' }
 post_test = { cmd = 'coverage html', help = 'Generates a coverage report after the tests.' }
-toml = { cmd = 'dotenv run poetry run python painel_ldo/main.py toml', help = 'Generates data.toml file.' }
-extract = { cmd = 'dotenv run poetry run python painel_ldo/main.py extract', help = 'Extract resources using dpm.' }
-build = { cmd = 'dotenv run poetry run python painel_ldo/main.py build', help = 'Generates csv reports.' }
+toml = { cmd = 'poetry run python painel_ldo/main.py toml', help = 'Generates data.toml file.' }
+extract = { cmd = 'poetry run python painel_ldo/main.py extract', help = 'Extract resources using dpm.' }
+build = { cmd = 'poetry run python painel_ldo/main.py build', help = 'Generates csv reports.' }
 painel = { cmd = 'task toml && task extract && task build', help = 'Generates csv reports.' }

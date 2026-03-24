@@ -66,9 +66,7 @@ jobs:
         run: poetry install
 
       - name: Rodar todo processo
-        run: |
-          dotenv set R_LIBS_USER ${{ env.R_LIBS_USER }}
-          poetry run task painel
+        run: poetry run task painel
         env:
           R_LIBS_USER: ~/R
           LD_LIBRARY_PATH: ${{ env.R_HOME }}/lib:${{ env.LD_LIBRARY_PATH }}
