@@ -15,6 +15,7 @@ dependencies = [
     "dpm @ git+https://github.com/splor-mg/dpm.git",
     "rpy2 (==3.5.12)",
     "tomli-w (>=1.2.0,<2.0.0)",
+    "streamlit (>=1.55.0,<2.0.0)",
 ]
 
 
