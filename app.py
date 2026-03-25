@@ -216,7 +216,7 @@ df_dcmefo_base = load_analise_dcmefo(ARQUIVO_ANALISE_DCMEFO)
 
 
 def exibir_resumo_alertas(df):
-    st.markdown("### Resumo de Alertas")
+    st.markdown("### 📊 Resumo de Alertas")
     alert_counts = df['alertas'].value_counts().reset_index()
     alert_counts.columns = ['Alerta', 'Quantidade']
 
@@ -303,7 +303,7 @@ def tela_visao_geral():
 
     col1, col2 = st.columns([0.8, 0.2])
     with col1:
-        st.markdown("### Detalhamento (Visão Geral)")
+        st.markdown("### 📋 Detalhamento (Visão Geral)")
     with col2:
         st.download_button(label="📥 Exportar para CSV", data=convert_df_to_csv(
             df_filtrado[colunas_finais]), file_name='visao_geral.csv', mime='text/csv')
@@ -324,7 +324,7 @@ def tela_fonte_recursos():
 
     col1, col2 = st.columns([0.8, 0.2])
     with col1:
-        st.markdown("### Detalhamento (Fonte de Recursos)")
+        st.markdown("### 📋 Detalhamento (Fonte de Recursos)")
     with col2:
         st.download_button(label="📥 Exportar para CSV", data=convert_df_to_csv(
             df_filtrado[colunas_finais]), file_name='fontes.csv', mime='text/csv')
@@ -403,7 +403,7 @@ def tela_ldo_2027():
 
     col1, col2 = st.columns([0.8, 0.2])
     with col1:
-        st.markdown("### Detalhamento (LDO 2027)")
+        st.markdown("### 📋 Detalhamento (LDO 2027)")
     with col2:
         st.download_button(label="📥 Exportar para CSV", data=convert_df_to_csv(
             df_display), file_name='ldo_2027.csv', mime='text/csv')
@@ -449,7 +449,7 @@ def tela_analise_dcmefo():
 
     col1, col2 = st.columns([0.8, 0.2])
     with col1:
-        st.markdown("### Detalhamento (Análise DCMEFO)")
+        st.markdown("### 📋 Detalhamento (Análise DCMEFO)")
     with col2:
         st.download_button(label="📥 Exportar para CSV", data=convert_df_to_csv(
             df_display), file_name='analise_dcmefo.csv', mime='text/csv')
