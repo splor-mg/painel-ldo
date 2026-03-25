@@ -216,7 +216,7 @@ df_dcmefo_base = load_analise_dcmefo(ARQUIVO_ANALISE_DCMEFO)
 
 
 def exibir_resumo_alertas(df):
-    st.markdown("### 📊 Resumo de Alertas")
+    st.markdown("### Resumo de Alertas")
     alert_counts = df['alertas'].value_counts().reset_index()
     alert_counts.columns = ['Alerta', 'Quantidade']
 
