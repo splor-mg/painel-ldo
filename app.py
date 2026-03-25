@@ -54,7 +54,7 @@ def convert_df_to_csv(df):
 # -----------------------------------------------------------------------------
 
 
-@st.cache_data
+@st.cache_data(ttl="1h")
 def load_aux_data(file_path):
     try:
         df_aux = pd.read_csv(file_path, sep=';', encoding='latin1')
@@ -73,7 +73,7 @@ def load_aux_data(file_path):
             return pd.DataFrame()
 
 
-@st.cache_data
+@st.cache_data(ttl="1h")
 def load_data(file_path, df_aux):
     try:
         # Tenta ler com virgula (padrão)
@@ -115,7 +115,7 @@ def load_data(file_path, df_aux):
     return df
 
 
-@st.cache_data
+@st.cache_data(ttl="1h")
 def load_orcamento_receita(file_path, df_aux):
     try:
         # Lê base garantindo o ponto e virgula
@@ -169,7 +169,7 @@ def load_orcamento_receita(file_path, df_aux):
     return df
 
 
-@st.cache_data
+@st.cache_data(ttl="1h")
 def load_analise_dcmefo(file_path):
     try:
         df = pd.read_csv(file_path, sep=';', encoding='utf-8')
@@ -303,7 +303,7 @@ def tela_visao_geral():
 
     col1, col2 = st.columns([0.8, 0.2])
     with col1:
-        st.markdown("### 📋 Detalhamento (Visão Geral)")
+        st.markdown("### Detalhamento (Visão Geral)")
     with col2:
         st.download_button(label="📥 Exportar para CSV", data=convert_df_to_csv(
             df_filtrado[colunas_finais]), file_name='visao_geral.csv', mime='text/csv')
@@ -324,7 +324,7 @@ def tela_fonte_recursos():
 
     col1, col2 = st.columns([0.8, 0.2])
     with col1:
-        st.markdown("### 📋 Detalhamento (Fonte de Recursos)")
+        st.markdown("### Detalhamento (Fonte de Recursos)")
     with col2:
         st.download_button(label="📥 Exportar para CSV", data=convert_df_to_csv(
             df_filtrado[colunas_finais]), file_name='fontes.csv', mime='text/csv')
@@ -403,7 +403,7 @@ def tela_ldo_2027():
 
     col1, col2 = st.columns([0.8, 0.2])
     with col1:
-        st.markdown("### 📋 Detalhamento (LDO 2027)")
+        st.markdown("### Detalhamento (LDO 2027)")
     with col2:
         st.download_button(label="📥 Exportar para CSV", data=convert_df_to_csv(
             df_display), file_name='ldo_2027.csv', mime='text/csv')
