@@ -97,6 +97,7 @@ def load_data(file_path, df_aux):
     else:
         df['passivel_analise_dcmefo'] = 'Não'
 
+    # Mantemos estas colunas concatenadas apenas para os Filtros Laterais ficarem intuitivos
     if 'uo_cod' in df.columns and 'uo_sigla' in df.columns:
         df['UO'] = df['uo_cod'].astype(str) + ' - ' + df['uo_sigla']
 
@@ -108,6 +109,7 @@ def load_data(file_path, df_aux):
         df['Classificação da Receita'] = df['receita_cod'].astype(
             str) + ' - ' + df['receita_desc']
 
+    # Criar a coluna de alerta visual
     if 'alertas' in df.columns:
         df['Alerta_Visual'] = df['alertas'].apply(
             lambda x: f"{get_alert_icon(x)} {x}")
@@ -216,7 +218,7 @@ df_dcmefo_base = load_analise_dcmefo(ARQUIVO_ANALISE_DCMEFO)
 
 
 def exibir_resumo_alertas(df):
-    st.markdown("### Resumo de Alertas")
+    st.markdown("### 📊 Resumo de Alertas")
     alert_counts = df['alertas'].value_counts().reset_index()
     alert_counts.columns = ['Alerta', 'Quantidade']
 
@@ -276,7 +278,9 @@ def aplicar_filtros_comuns(df, is_visao_geral=True):
 
 def formatar_tabela_ptbr(df_filtrado, colunas_finais):
     """Aplica o estilo de formatação brasileira (R$) nas colunas financeiras."""
-    colunas_anos = ['2023', '2024', '2025_reest', '2026', 'Valor LDO']
+    # Adicionadas as novas colunas à lista de formatação
+    colunas_anos = ['2023', '2024', '2025',
+                    '2026 Reest', '2027 LDO', 'Valor LDO']
     colunas_formatar = [col for col in colunas_anos if col in colunas_finais]
 
     return df_filtrado[colunas_finais].style.format(
@@ -296,19 +300,35 @@ def tela_visao_geral():
     df_filtrado = aplicar_filtros_comuns(df_receita, is_visao_geral=True)
     exibir_resumo_alertas(df_filtrado)
 
-    colunas_exibicao = ['UO', 'Fonte de Recursos', 'Classificação da Receita',
-                        '2023', '2024', '2025_reest', '2026', 'Alerta_Visual']
-    colunas_finais = [
-        col for col in colunas_exibicao if col in df_filtrado.columns]
+    # Mapeamento exato das colunas solicitadas
+    mapa_colunas = {
+        'uo_cod': 'UO cod',
+        'uo_sigla': 'UO',
+        'receita_cod': 'Classificação Receita cod',
+        'receita_desc': 'Classificação da Receita',
+        'fonte_cod': 'Fonte cod',
+        'fonte_desc': 'Fonte de Recursos',
+        '2024': '2024',
+        '2025': '2025',
+        'reestimativa_2026': '2026 Reest',
+        '2027': '2027 LDO',
+        'Alerta_Visual': 'alertas'  # Mapeado para Alerta_Visual para manter os ícones
+    }
+
+    # Seleciona as colunas disponíveis na base e renomeia para a exibição
+    colunas_presentes = [
+        col for col in mapa_colunas.keys() if col in df_filtrado.columns]
+    df_display = df_filtrado[colunas_presentes].rename(columns=mapa_colunas)
+    colunas_finais = df_display.columns.tolist()
 
     col1, col2 = st.columns([0.8, 0.2])
     with col1:
-        st.markdown("### Detalhamento (Visão Geral)")
+        st.markdown("### 📋 Detalhamento (Visão Geral)")
     with col2:
         st.download_button(label="📥 Exportar para CSV", data=convert_df_to_csv(
-            df_filtrado[colunas_finais]), file_name='visao_geral.csv', mime='text/csv')
+            df_display), file_name='visao_geral.csv', mime='text/csv')
 
-    st.dataframe(formatar_tabela_ptbr(df_filtrado, colunas_finais),
+    st.dataframe(formatar_tabela_ptbr(df_display, colunas_finais),
                  use_container_width=True, hide_index=True)
 
 
@@ -317,19 +337,33 @@ def tela_fonte_recursos():
     df_filtrado = aplicar_filtros_comuns(df_fonte, is_visao_geral=False)
     exibir_resumo_alertas(df_filtrado)
 
-    colunas_exibicao = ['UO', 'Fonte de Recursos', '2023',
-                        '2024', '2025_reest', '2026', 'Alerta_Visual']
-    colunas_finais = [
-        col for col in colunas_exibicao if col in df_filtrado.columns]
+    # Mapeamento exato das colunas solicitadas
+    mapa_colunas = {
+        'uo_cod': 'UO cod',
+        'uo_sigla': 'UO',
+        'fonte_cod': 'Fonte cod',
+        'fonte_desc': 'Fonte de Recursos',
+        '2024': '2024',
+        '2025': '2025',
+        'reestimativa_2026': '2026 Reest',
+        '2027': '2027 LDO',
+        'Alerta_Visual': 'alertas'  # Mapeado para Alerta_Visual para manter os ícones
+    }
+
+    # Seleciona as colunas disponíveis na base e renomeia para a exibição
+    colunas_presentes = [
+        col for col in mapa_colunas.keys() if col in df_filtrado.columns]
+    df_display = df_filtrado[colunas_presentes].rename(columns=mapa_colunas)
+    colunas_finais = df_display.columns.tolist()
 
     col1, col2 = st.columns([0.8, 0.2])
     with col1:
-        st.markdown("### Detalhamento (Fonte de Recursos)")
+        st.markdown("### 📋 Detalhamento (Fonte de Recursos)")
     with col2:
         st.download_button(label="📥 Exportar para CSV", data=convert_df_to_csv(
-            df_filtrado[colunas_finais]), file_name='fontes.csv', mime='text/csv')
+            df_display), file_name='fontes.csv', mime='text/csv')
 
-    st.dataframe(formatar_tabela_ptbr(df_filtrado, colunas_finais),
+    st.dataframe(formatar_tabela_ptbr(df_display, colunas_finais),
                  use_container_width=True, hide_index=True)
 
 
@@ -403,7 +437,7 @@ def tela_ldo_2027():
 
     col1, col2 = st.columns([0.8, 0.2])
     with col1:
-        st.markdown("### Detalhamento (LDO 2027)")
+        st.markdown("### 📋 Detalhamento (LDO 2027)")
     with col2:
         st.download_button(label="📥 Exportar para CSV", data=convert_df_to_csv(
             df_display), file_name='ldo_2027.csv', mime='text/csv')
