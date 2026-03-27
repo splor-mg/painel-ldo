@@ -18,12 +18,12 @@ st.set_page_config(
 # -----------------------------------------------------------------------------
 ALERT_MAP = {
     "OK": "🟢",
-    "RECEITA A SER INFORMADA PELA DCGCE/SEPLAG": "⚪",
+    "RECEITA A SER INFORMADA PELA DCGCE/SEPLAG": "🟣",  # Lilás
     "ATENCAO": "🟠",
     "VALOR DISCREPANTE": "⚠️",
     "RECEITA NAO ESTIMADA": "🔴",
-    "RECEITA DE REPASSE DO FES E LANCADA PELA SPLOR": "🔘",
-    "RECEITA DE CONVENIOS EM FONTE NAO ESPERADA": "⚪"
+    "RECEITA DE REPASSE DO FES E LANCADA PELA SPLOR": "🔵",  # Azul
+    "RECEITA DE CONVENIOS EM FONTE NAO ESPERADA": "🟤"  # Marrom
 }
 
 
@@ -258,26 +258,30 @@ def exibir_resumo_alertas(df):
 
 def aplicar_filtros_comuns(df, is_visao_geral=True):
     st.sidebar.header("Filtros")
+    prefix = "vg" if is_visao_geral else "fr"
 
     opcoes_dcmefo = sorted(df['passivel_analise_dcmefo'].unique().tolist())
     filtro_dcmefo = st.sidebar.multiselect(
-        "Passível de análise DCMEFO?", opcoes_dcmefo, default=opcoes_dcmefo)
+        "Passível de análise DCMEFO?", opcoes_dcmefo, default=opcoes_dcmefo, key=f"filtro_{prefix}_dcmefo")
 
     opcoes_uo = sorted(df['UO'].dropna().unique().tolist())
-    filtro_uo = st.sidebar.multiselect("Unidade Orçamentária (UO)", opcoes_uo)
+    filtro_uo = st.sidebar.multiselect(
+        "Unidade Orçamentária (UO)", opcoes_uo, key=f"filtro_{prefix}_uo")
 
     opcoes_fonte = sorted(df['Fonte de Recursos'].dropna().unique().tolist())
-    filtro_fonte = st.sidebar.multiselect("Fonte de Recursos", opcoes_fonte)
+    filtro_fonte = st.sidebar.multiselect(
+        "Fonte de Recursos", opcoes_fonte, key=f"filtro_{prefix}_fonte")
 
     filtro_receita = []
     if is_visao_geral and 'Classificação da Receita' in df.columns:
         opcoes_receita = sorted(
             df['Classificação da Receita'].dropna().unique().tolist())
         filtro_receita = st.sidebar.multiselect(
-            "Classificação da Receita", opcoes_receita)
+            "Classificação da Receita", opcoes_receita, key=f"filtro_{prefix}_receita")
 
     opcoes_alerta = sorted(df['alertas'].dropna().unique().tolist())
-    filtro_alerta = st.sidebar.multiselect("Tipo de Alerta", opcoes_alerta)
+    filtro_alerta = st.sidebar.multiselect(
+        "Tipo de Alerta", opcoes_alerta, key=f"filtro_{prefix}_alerta")
 
     df_filtrado = df.copy()
 
@@ -313,12 +317,23 @@ def formatar_tabela_ptbr(df_filtrado, colunas_finais):
 
 
 # -----------------------------------------------------------------------------
-# Menu de Navegação
+# Menu de Navegação e Botões Globais
 # -----------------------------------------------------------------------------
 st.sidebar.title("Navegação")
 menu = st.sidebar.radio("Selecione a Página:", [
                         "Visão Geral", "Fonte de Recursos", "LDO 2027", "Análise DCMEFO"])
 
+st.sidebar.markdown("---")
+
+# Botão para Limpar Filtros
+if st.sidebar.button("🧹 Limpar Todos os Filtros", use_container_width=True):
+    chaves_para_limpar = [
+        k for k in st.session_state.keys() if k.startswith("filtro_")]
+    for k in chaves_para_limpar:
+        del st.session_state[k]
+    st.rerun()
+
+st.sidebar.markdown("---")
 
 # -----------------------------------------------------------------------------
 # Cabeçalho Global (Aparece no topo direito de todas as telas)
@@ -329,10 +344,11 @@ with col_info:
     st.markdown(
         f"<div style='text-align: right; color: gray;'><small>🔄 Última atualização dos dados: <b>{data_att}</b></small></div>", unsafe_allow_html=True)
 
-
 # -----------------------------------------------------------------------------
 # Telas da Aplicação
 # -----------------------------------------------------------------------------
+
+
 def tela_visao_geral():
     st.title("Visão Geral - Previsão de Receitas")
     df_filtrado = aplicar_filtros_comuns(df_receita, is_visao_geral=True)
@@ -412,26 +428,27 @@ def tela_ldo_2027():
     opcoes_dcmefo = sorted(
         df_orcamento['passivel_analise_dcmefo'].unique().tolist())
     filtro_dcmefo = st.sidebar.multiselect(
-        "Passível de análise DCMEFO?", opcoes_dcmefo, default=opcoes_dcmefo)
+        "Passível de análise DCMEFO?", opcoes_dcmefo, default=opcoes_dcmefo, key="filtro_ldo_dcmefo")
 
     opcoes_uo_concat = sorted(df_orcamento['Unidade Orçamentária_concat'].dropna(
     ).unique().tolist()) if 'Unidade Orçamentária_concat' in df_orcamento.columns else []
     filtro_uo_concat = st.sidebar.multiselect(
-        "Unidade Orçamentária", opcoes_uo_concat)
+        "Unidade Orçamentária", opcoes_uo_concat, key="filtro_ldo_uo")
 
     opcoes_fonte = sorted(df_orcamento['Fonte'].dropna().unique(
     ).tolist()) if 'Fonte' in df_orcamento.columns else []
-    filtro_fonte = st.sidebar.multiselect("Fonte de Recursos", opcoes_fonte)
+    filtro_fonte = st.sidebar.multiselect(
+        "Fonte de Recursos", opcoes_fonte, key="filtro_ldo_fonte")
 
     opcoes_class_concat = sorted(df_orcamento['Classificação da Receita_concat'].dropna(
     ).unique().tolist()) if 'Classificação da Receita_concat' in df_orcamento.columns else []
     filtro_classificacao = st.sidebar.multiselect(
-        "Classificação da Receita", opcoes_class_concat)
+        "Classificação da Receita", opcoes_class_concat, key="filtro_ldo_classificacao")
 
     opcoes_metodologia = sorted(df_orcamento['Metodologia de cálculo e premissas utilizadas'].dropna(
     ).unique().tolist()) if 'Metodologia de cálculo e premissas utilizadas' in df_orcamento.columns else []
     filtro_metodologia = st.sidebar.multiselect(
-        "Metodologias e Premissas", opcoes_metodologia)
+        "Metodologias e Premissas", opcoes_metodologia, key="filtro_ldo_metodologia")
 
     df_filtrado = df_orcamento.copy()
 
@@ -491,12 +508,12 @@ def tela_analise_dcmefo():
     opcoes_uo_concat = sorted(df_dcmefo_base['Unidade Orçamentária_concat'].dropna(
     ).unique().tolist()) if 'Unidade Orçamentária_concat' in df_dcmefo_base.columns else []
     filtro_uo_concat = st.sidebar.multiselect(
-        "Unidade Orçamentária", opcoes_uo_concat)
+        "Unidade Orçamentária", opcoes_uo_concat, key="filtro_analise_uo")
 
     opcoes_fonte_concat = sorted(df_dcmefo_base['Fonte de recursos_concat'].dropna(
     ).unique().tolist()) if 'Fonte de recursos_concat' in df_dcmefo_base.columns else []
     filtro_fonte_concat = st.sidebar.multiselect(
-        "Fonte de Recursos", opcoes_fonte_concat)
+        "Fonte de Recursos", opcoes_fonte_concat, key="filtro_analise_fonte")
 
     df_filtrado = df_dcmefo_base.copy()
 
