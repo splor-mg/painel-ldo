@@ -5,8 +5,7 @@ on:
   push:
     branches: [ main ]
   schedule:
-    # Todo dia às 10h no Brasil (13h UTC)
-    - cron: "20 15 * * *"
+    - cron: "0 8 * * *"
       timezone: "America/Sao_Paulo"
 
 permissions:
