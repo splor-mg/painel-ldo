@@ -1,0 +1,124 @@
+{
+  "name": "aux_classificadores",
+  "profile": "tabular-data-package",
+  "resources": [
+    {
+      "name": "fonte_recurso",
+      "type": "table",
+      "profile": "tabular-data-resource",
+      "path": "data/fonte_recurso.csv",
+      "scheme": "file",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "hash": "sha256:4f720b2a1fc54428ad3d6efc03b376e27dc669a3d016c28689f9bebb49b9953e",
+      "bytes": 65022,
+      "fields": 4,
+      "rows": 935,
+      "dialect": {
+        "csv": {
+          "delimiter": ","
+        }
+      },
+      "schema": {
+        "fields": [
+          {
+            "name": "chave_fonte_recurso",
+            "type": "string"
+          },
+          {
+            "name": "ano",
+            "type": "integer"
+          },
+          {
+            "name": "fonte_cod",
+            "type": "integer"
+          },
+          {
+            "name": "fonte_desc",
+            "type": "string"
+          }
+        ],
+        "primaryKey": [
+          "ano",
+          "fonte_cod"
+        ]
+      }
+    },
+    {
+      "name": "uo",
+      "type": "table",
+      "profile": "tabular-data-resource",
+      "path": "data/uo.csv",
+      "scheme": "file",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "hash": "sha256:a5a7086fae47817d74bd1b205f02975de81343ab1996be4ea627e34393a0246c",
+      "bytes": 297442,
+      "fields": 10,
+      "rows": 1993,
+      "dialect": {
+        "csv": {
+          "delimiter": ","
+        }
+      },
+      "schema": {
+        "fields": [
+          {
+            "name": "chave_uo",
+            "type": "string"
+          },
+          {
+            "name": "ano",
+            "type": "integer"
+          },
+          {
+            "name": "orgao_vinculacao_cod",
+            "type": "integer"
+          },
+          {
+            "name": "orgao_vinculacao_nome",
+            "type": "string"
+          },
+          {
+            "name": "poder_cod",
+            "type": "integer"
+          },
+          {
+            "name": "poder_desc",
+            "type": "string"
+          },
+          {
+            "name": "uo_cod",
+            "type": "integer"
+          },
+          {
+            "name": "uo_nome",
+            "type": "string"
+          },
+          {
+            "name": "uo_sigla",
+            "type": "string"
+          },
+          {
+            "name": "uo_sigla_current",
+            "type": "string"
+          }
+        ],
+        "primaryKey": [
+          "ano",
+          "uo_cod"
+        ]
+      }
+    }
+  ],
+  "updated_at": "2026-03-05T23:12:45",
+  "remote": {
+    "host": "raw.githubusercontent.com",
+    "user": "splor-mg",
+    "repo": "dados-aux-classificadores",
+    "ref": "main",
+    "sha": "db145ccb64122271d16ec99903790417279aa11e"
+  }
+}

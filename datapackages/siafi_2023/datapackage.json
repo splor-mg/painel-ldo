@@ -1,12 +1,10 @@
 {
-  "name": "dados-armazem-siafi-2026",
-  "title": "Sistema Integrado de Administração Financeira – SIAFI 2026",
+  "name": "armazem-siafi-dados",
   "profile": "tabular-data-package",
   "resources": [
     {
       "name": "receita",
       "type": "table",
-      "title": "receita",
       "profile": "tabular-data-resource",
       "path": "data/receita.csv.gz",
       "scheme": "file",
@@ -14,10 +12,10 @@
       "mediatype": "text/csv",
       "compression": "gz",
       "encoding": "utf-8",
-      "hash": "sha256:63b67d9a8d1900fb63816c4029f4542e585ccce8a13499f2969586cabf7884dd",
-      "bytes": 69533,
+      "hash": "sha256:47a44861d7a44954cd7ddeec64a271c14b06b1fda3e8a5aa015ec5d7365e8d59",
+      "bytes": 195181,
       "fields": 12,
-      "rows": 2582,
+      "rows": 9240,
       "schema": {
         "fields": [
           {
@@ -84,13 +82,12 @@
       }
     }
   ],
-  "owner_org": "secretaria-de-estado-de-planejamento-e-gestao-seplag",
-  "updated_at": "2026-03-27T11:16:09",
+  "updated_at": "2025-02-06T12:25:15",
   "remote": {
     "host": "raw.githubusercontent.com",
     "user": "splor-mg",
-    "repo": "dados-armazem-siafi-2026",
+    "repo": "dados-armazem-siafi-2023",
     "ref": "main",
-    "sha": "137ea6ebdadf91080e152ff655f08d7367466b32"
+    "sha": "b6640346812a514837e04d41ddc4d2349d5ee650"
   }
 }
