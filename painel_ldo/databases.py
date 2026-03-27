@@ -245,7 +245,6 @@ def cria_base_receita_analise(valor_painel): # análise mais da DCAF
     # Create data directory if it doesn't exist
     os.makedirs('data', exist_ok=True)
     base_analise.to_csv("data/receita_analise.csv", index=False)
-    base_analise.to_excel("data/receita_analise.xlsx", index=False)
 
 def cria_base_fonte_analise(valor_painel):
 
@@ -337,4 +336,3 @@ def cria_base_fonte_analise(valor_painel):
     # Create data directory if it doesn't exist
     os.makedirs('data', exist_ok=True)
     base_fonte_agg.to_csv("data/fonte_analise.csv", index=False)
-    base_fonte_agg.to_excel("data/fonte_analise.xlsx", index=False)
