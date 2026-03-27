@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import unicodedata
+import subprocess
+from datetime import datetime, timezone, timedelta
 
 # -----------------------------------------------------------------------------
 # Configuração da Página
@@ -38,6 +40,26 @@ def normalizar_texto(texto):
 def get_alert_icon(alert_text):
     texto_norm = normalizar_texto(alert_text)
     return ALERT_MAP.get(texto_norm, "📌")
+
+
+@st.cache_data(ttl="1h")
+def get_data_atualizacao():
+    """Consulta o histórico interno do próprio Git para saber o horário do último push."""
+    try:
+        # Roda um comando invisível do git para pegar a data do último commit (em formato ISO)
+        resultado = subprocess.check_output(
+            ['git', 'log', '-1', '--format=%cI']).decode('utf-8').strip()
+
+        # Converte o texto para formato de Data e Hora
+        dt_commit = datetime.fromisoformat(resultado)
+
+        # Converte para o padrão Universal (UTC) e depois desconta 3 horas para Brasília
+        dt_utc = dt_commit.astimezone(timezone.utc)
+        dt_brasilia = dt_utc - timedelta(hours=3)
+
+        return dt_brasilia.strftime("%d/%m/%Y às %H:%M")
+    except Exception:
+        return "Indisponível"
 
 # -----------------------------------------------------------------------------
 # Função para Exportar CSV
@@ -278,7 +300,6 @@ def aplicar_filtros_comuns(df, is_visao_geral=True):
 
 def formatar_tabela_ptbr(df_filtrado, colunas_finais):
     """Aplica o estilo de formatação brasileira (R$) nas colunas financeiras."""
-    # Adicionadas as novas colunas à lista de formatação
     colunas_anos = ['2023', '2024', '2025',
                     '2026 Reest', '2027 LDO', 'Valor LDO']
     colunas_formatar = [col for col in colunas_anos if col in colunas_finais]
@@ -290,17 +311,33 @@ def formatar_tabela_ptbr(df_filtrado, colunas_finais):
         decimal=','
     )
 
+
+# -----------------------------------------------------------------------------
+# Menu de Navegação
+# -----------------------------------------------------------------------------
+st.sidebar.title("Navegação")
+menu = st.sidebar.radio("Selecione a Página:", [
+                        "Visão Geral", "Fonte de Recursos", "LDO 2027", "Análise DCMEFO"])
+
+
+# -----------------------------------------------------------------------------
+# Cabeçalho Global (Aparece no topo direito de todas as telas)
+# -----------------------------------------------------------------------------
+data_att = get_data_atualizacao()
+col_vazia, col_info = st.columns([0.65, 0.35])
+with col_info:
+    st.markdown(
+        f"<div style='text-align: right; color: gray;'><small>🔄 Última atualização dos dados: <b>{data_att}</b></small></div>", unsafe_allow_html=True)
+
+
 # -----------------------------------------------------------------------------
 # Telas da Aplicação
 # -----------------------------------------------------------------------------
-
-
 def tela_visao_geral():
     st.title("Visão Geral - Previsão de Receitas")
     df_filtrado = aplicar_filtros_comuns(df_receita, is_visao_geral=True)
     exibir_resumo_alertas(df_filtrado)
 
-    # Mapeamento exato das colunas solicitadas
     mapa_colunas = {
         'uo_cod': 'UO cod',
         'uo_sigla': 'UO',
@@ -312,10 +349,9 @@ def tela_visao_geral():
         '2025': '2025',
         'reestimativa_2026': '2026 Reest',
         '2027': '2027 LDO',
-        'Alerta_Visual': 'alertas'  # Mapeado para Alerta_Visual para manter os ícones
+        'Alerta_Visual': 'alertas'
     }
 
-    # Seleciona as colunas disponíveis na base e renomeia para a exibição
     colunas_presentes = [
         col for col in mapa_colunas.keys() if col in df_filtrado.columns]
     df_display = df_filtrado[colunas_presentes].rename(columns=mapa_colunas)
@@ -337,7 +373,6 @@ def tela_fonte_recursos():
     df_filtrado = aplicar_filtros_comuns(df_fonte, is_visao_geral=False)
     exibir_resumo_alertas(df_filtrado)
 
-    # Mapeamento exato das colunas solicitadas
     mapa_colunas = {
         'uo_cod': 'UO cod',
         'uo_sigla': 'UO',
@@ -347,10 +382,9 @@ def tela_fonte_recursos():
         '2025': '2025',
         'reestimativa_2026': '2026 Reest',
         '2027': '2027 LDO',
-        'Alerta_Visual': 'alertas'  # Mapeado para Alerta_Visual para manter os ícones
+        'Alerta_Visual': 'alertas'
     }
 
-    # Seleciona as colunas disponíveis na base e renomeia para a exibição
     colunas_presentes = [
         col for col in mapa_colunas.keys() if col in df_filtrado.columns]
     df_display = df_filtrado[colunas_presentes].rename(columns=mapa_colunas)
@@ -491,13 +525,7 @@ def tela_analise_dcmefo():
     st.dataframe(df_display, use_container_width=True, hide_index=True)
 
 
-# -----------------------------------------------------------------------------
-# Menu de Navegação
-# -----------------------------------------------------------------------------
-st.sidebar.title("Navegação")
-menu = st.sidebar.radio("Selecione a Página:", [
-                        "Visão Geral", "Fonte de Recursos", "LDO 2027", "Análise DCMEFO"])
-
+# Execução do roteador de telas
 if menu == "Visão Geral":
     tela_visao_geral()
 elif menu == "Fonte de Recursos":
