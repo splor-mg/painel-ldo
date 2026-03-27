@@ -32,7 +32,7 @@ fontes_convenios = list(range(1, 10)) + [16, 17, 24, 36, 37, 56, 57] + \
 def build_toml():
     config = {"packages": {}}
 
-    for year in range(ANO_REF - 2, ANO_REF +1):
+    for year in range(ANO_REF - 3, ANO_REF +1):
         config["packages"][f"siafi_{year}"] = {
             "path": f"https://raw.githubusercontent.com/splor-mg/dados-armazem-siafi-{year}/main/datapackage.json",
             "token": "GH_TOKEN",
@@ -45,6 +45,12 @@ def build_toml():
                 "resources": ["reest_rec"],
             }
         # TODO: Add ppo datapackage when it was available in dados-ppo repository
+
+    config["packages"]["dados-aux-classificadores"] = {
+        "path": "https://raw.githubusercontent.com/splor-mg/dados-aux-classificadores/main/datapackage.json",
+        "token": "GH_TOKEN",
+        "resources": ["uo", "fonte_recurso"],
+    }
 
     with open("data.toml", "wb") as f:
         tomli_w.dump(config, f)
@@ -62,12 +68,11 @@ def build_df(datapackage, columns_to_use):
 
 def carrega_trata_dados():
 
-
     # Load, filter columns and concatenate siafi data
     siafi_columns_to_use = ['ano', 'uo_cod', 'receita_cod', 'fonte_cod', 'receita_desc', 'receita_cod_formatado', 'vlr_previsto_inicial', 'vlr_efetivado_ajustado'] # vlr_previsto_inicial LOA, vlr_efetivado_ajustado o que arrecadou
 
     siafi_dfs= []
-    for year in range(ANO_REF, ANO_REF -3, -1): #(ANO_REF, ANO_REF -1, ANO_REF -2)
+    for year in range(ANO_REF, ANO_REF -4, -1): #(ANO_REF, ANO_REF -1, ANO_REF -2, ANO_REF -3)
         siafi_df = build_df(f'siafi_{year}', siafi_columns_to_use)
         siafi_dfs.append(siafi_df)
     siafi_df = pd.concat(siafi_dfs, ignore_index=True)
@@ -171,8 +176,7 @@ def cria_base_receita_analise(valor_painel): # análise mais da DCAF
 
     base_analise[numeric_columns] = base_analise[numeric_columns].fillna(0).round(2)
     # Reorder columns based on specific order
-    column_order = ['uo_cod', 'receita_cod', 'fonte_cod', ANO_REF - 2, ANO_REF - 1, f"reestimativa_{ANO_REF}", f"siafi_{ANO_REF}", ANO_REF_LDO]
-    # breakpoint()
+    column_order = ['uo_cod', 'receita_cod', 'fonte_cod', ANO_REF - 3, ANO_REF - 2, ANO_REF - 1, f"reestimativa_{ANO_REF}", f"siafi_{ANO_REF}", ANO_REF_LDO]
     base_analise = base_analise[column_order]
 
 
@@ -264,7 +268,7 @@ def cria_base_fonte_analise(valor_painel):
 
     base_fonte_agg[numeric_columns] = base_fonte_agg[numeric_columns].fillna(0).round(2)
     # Reorder columns based on specific order
-    column_order = ['uo_cod', 'fonte_cod', ANO_REF - 2, ANO_REF - 1, f"reestimativa_{ANO_REF}", f"siafi_{ANO_REF}", ANO_REF_LDO]
+    column_order = ['uo_cod', 'fonte_cod', ANO_REF - 3, ANO_REF - 2, ANO_REF - 1, f"reestimativa_{ANO_REF}", f"siafi_{ANO_REF}", ANO_REF_LDO]
     base_fonte_agg = base_fonte_agg[column_order]
 
 
