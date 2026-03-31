@@ -106,12 +106,12 @@
       }
     }
   ],
-  "updated_at": "2026-03-30T10:11:48",
+  "updated_at": "2026-03-31T09:59:56",
   "remote": {
     "host": "raw.githubusercontent.com",
     "user": "splor-mg",
     "repo": "dados-reestimativa-2026",
     "ref": "main",
-    "sha": "4173326da5313e8e9c77713da4280e54f3013b25"
+    "sha": "3c6eba0ae5712e9e4b492a541c128206c588605c"
   }
 }
