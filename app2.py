@@ -261,8 +261,9 @@ def aplicar_filtros_comuns(df, is_visao_geral=True):
     prefix = "vg" if is_visao_geral else "fr"
 
     opcoes_dcmefo = sorted(df['passivel_analise_dcmefo'].unique().tolist())
+    # Removido o default para iniciar vazio
     filtro_dcmefo = st.sidebar.multiselect(
-        "Passível de análise DCMEFO?", opcoes_dcmefo, default=opcoes_dcmefo, key=f"filtro_{prefix}_dcmefo")
+        "Passível de análise DCMEFO?", opcoes_dcmefo, key=f"filtro_{prefix}_dcmefo")
 
     opcoes_uo = sorted(df['UO'].dropna().unique().tolist())
     filtro_uo = st.sidebar.multiselect(
@@ -315,6 +316,17 @@ def formatar_tabela_ptbr(df_filtrado, colunas_finais):
         decimal=','
     )
 
+# -----------------------------------------------------------------------------
+# Lógica de Limpeza de Filtros (Callback)
+# -----------------------------------------------------------------------------
+
+
+def limpar_filtros():
+    """Função callback para esvaziar visualmente os componentes do session_state."""
+    for key in list(st.session_state.keys()):
+        if key.startswith("filtro_"):
+            st.session_state[key] = []
+
 
 # -----------------------------------------------------------------------------
 # Menu de Navegação e Botões Globais
@@ -325,13 +337,9 @@ menu = st.sidebar.radio("Selecione a Página:", [
 
 st.sidebar.markdown("---")
 
-# Botão para Limpar Filtros
-if st.sidebar.button("🧹 Limpar Todos os Filtros", use_container_width=True):
-    chaves_para_limpar = [
-        k for k in st.session_state.keys() if k.startswith("filtro_")]
-    for k in chaves_para_limpar:
-        del st.session_state[k]
-    st.rerun()
+# Botão Limpar Filtros aciona o callback antes de recarregar a tela
+st.sidebar.button("🧹 Limpar Todos os Filtros",
+                  on_click=limpar_filtros, use_container_width=True)
 
 st.sidebar.markdown("---")
 
@@ -427,8 +435,9 @@ def tela_ldo_2027():
 
     opcoes_dcmefo = sorted(
         df_orcamento['passivel_analise_dcmefo'].unique().tolist())
+    # Removido o default para iniciar vazio
     filtro_dcmefo = st.sidebar.multiselect(
-        "Passível de análise DCMEFO?", opcoes_dcmefo, default=opcoes_dcmefo, key="filtro_ldo_dcmefo")
+        "Passível de análise DCMEFO?", opcoes_dcmefo, key="filtro_ldo_dcmefo")
 
     opcoes_uo_concat = sorted(df_orcamento['Unidade Orçamentária_concat'].dropna(
     ).unique().tolist()) if 'Unidade Orçamentária_concat' in df_orcamento.columns else []
