@@ -77,6 +77,62 @@ def convert_df_to_csv(df):
 
 
 @st.cache_data(ttl="1h")
+def load_uo_data(file_path):
+    """Carrega a base auxiliar de Unidades Orçamentárias para obter as siglas (Apenas Ano 2026)."""
+    try:
+        df = pd.read_csv(file_path, sep=';', encoding='utf-8')
+    except UnicodeDecodeError:
+        df = pd.read_csv(file_path, sep=';', encoding='latin1')
+    except FileNotFoundError:
+        st.error(f"⚠️ Arquivo '{file_path}' não encontrado.")
+        return pd.DataFrame()
+
+    if len(df.columns) == 1:
+        try:
+            df = pd.read_csv(file_path, sep=',', encoding='utf-8')
+        except:
+            pass
+
+    # Filtra os dados apenas para o ano de 2026
+    col_ano = next((col for col in df.columns if str(
+        col).strip().lower() == 'ano'), None)
+    if col_ano:
+        df = df[df[col_ano].astype(str).str.strip() == '2026']
+
+    if 'uo_cod' in df.columns:
+        df['uo_cod'] = df['uo_cod'].astype(str)
+    return df
+
+
+@st.cache_data(ttl="1h")
+def load_fonte_recurso_data(file_path):
+    """Carrega a base auxiliar de Fontes de Recurso para obter as descrições (Apenas Ano 2026)."""
+    try:
+        df = pd.read_csv(file_path, sep=';', encoding='utf-8')
+    except UnicodeDecodeError:
+        df = pd.read_csv(file_path, sep=';', encoding='latin1')
+    except FileNotFoundError:
+        st.error(f"⚠️ Arquivo '{file_path}' não encontrado.")
+        return pd.DataFrame()
+
+    if len(df.columns) == 1:
+        try:
+            df = pd.read_csv(file_path, sep=',', encoding='utf-8')
+        except:
+            pass
+
+    # Filtra os dados apenas para o ano de 2026
+    col_ano = next((col for col in df.columns if str(
+        col).strip().lower() == 'ano'), None)
+    if col_ano:
+        df = df[df[col_ano].astype(str).str.strip() == '2026']
+
+    if 'fonte_cod' in df.columns:
+        df['fonte_cod'] = df['fonte_cod'].astype(str).str.strip()
+    return df
+
+
+@st.cache_data(ttl="1h")
 def load_aux_data(file_path):
     try:
         df_aux = pd.read_csv(file_path, sep=';', encoding='latin1')
@@ -110,7 +166,8 @@ def load_data(file_path, df_aux):
 
     if 'fonte_cod' in df.columns:
         df['fonte_cod'] = df['fonte_cod'].astype(str)
-        df = df.merge(df_aux, left_on='fonte_cod',
+        df_aux_unique = df_aux.drop_duplicates(subset=['CD_FONTE'])
+        df = df.merge(df_aux_unique, left_on='fonte_cod',
                       right_on='CD_FONTE', how='left')
 
         df['passivel_analise_dcmefo'] = df['Analise DCMEFO'].apply(
@@ -119,7 +176,6 @@ def load_data(file_path, df_aux):
     else:
         df['passivel_analise_dcmefo'] = 'Não'
 
-    # Mantemos estas colunas concatenadas apenas para os Filtros Laterais ficarem intuitivos
     if 'uo_cod' in df.columns and 'uo_sigla' in df.columns:
         df['UO'] = df['uo_cod'].astype(str) + ' - ' + df['uo_sigla']
 
@@ -131,7 +187,6 @@ def load_data(file_path, df_aux):
         df['Classificação da Receita'] = df['receita_cod'].astype(
             str) + ' - ' + df['receita_desc']
 
-    # Criar a coluna de alerta visual
     if 'alertas' in df.columns:
         df['Alerta_Visual'] = df['alertas'].apply(
             lambda x: f"{get_alert_icon(x)} {x}")
@@ -140,9 +195,8 @@ def load_data(file_path, df_aux):
 
 
 @st.cache_data(ttl="1h")
-def load_orcamento_receita(file_path, df_aux):
+def load_orcamento_receita(file_path, df_aux, df_uo, df_fonte_recurso):
     try:
-        # Lê base garantindo o ponto e virgula
         df = pd.read_csv(file_path, sep=';', encoding='utf-8')
     except UnicodeDecodeError:
         df = pd.read_csv(file_path, sep=';', encoding='latin1')
@@ -150,7 +204,6 @@ def load_orcamento_receita(file_path, df_aux):
         st.error(f"⚠️ Arquivo '{file_path}' não encontrado.")
         return pd.DataFrame()
 
-    # Se a leitura falhou e trouxe 1 coluna só, tenta com vírgula (redundância de segurança)
     if len(df.columns) == 1:
         try:
             df = pd.read_csv(file_path, sep=',', encoding='utf-8')
@@ -158,13 +211,14 @@ def load_orcamento_receita(file_path, df_aux):
             pass
 
     if not df_aux.empty and 'Fonte' in df.columns:
-        # Extrai os dígitos iniciais da fonte para garantir o cruzamento
         df['fonte_cod_temp'] = df['Fonte'].astype(
             str).str.extract(r'^(\d+)')[0]
         df['fonte_cod_temp'] = df['fonte_cod_temp'].fillna(
             df['Fonte'].astype(str).str.strip())
 
-        df = df.merge(df_aux, left_on='fonte_cod_temp',
+        df_aux_unique = df_aux.drop_duplicates(subset=['CD_FONTE'])
+
+        df = df.merge(df_aux_unique, left_on='fonte_cod_temp',
                       right_on='CD_FONTE', how='left')
         df['passivel_analise_dcmefo'] = df['Analise DCMEFO'].apply(
             lambda x: 'Sim' if str(x).strip().upper() == 'SIM' else 'Não'
@@ -173,16 +227,55 @@ def load_orcamento_receita(file_path, df_aux):
     else:
         df['passivel_analise_dcmefo'] = 'Não'
 
-    # Concatenações da base LDO 2027
-    if 'Código da Unidade' in df.columns and 'Unidade Orçamentária' in df.columns:
+    # Concatenações da base LDO 2027 (Cruzamento com uo.csv já filtrada em 2026)
+    if not df_uo.empty and 'Código da Unidade' in df.columns and 'uo_cod' in df_uo.columns:
+        df['Código da Unidade'] = df['Código da Unidade'].astype(str)
+        df_uo_unique = df_uo[['uo_cod', 'uo_sigla']].drop_duplicates(subset=[
+                                                                     'uo_cod'])
+
+        df = df.merge(df_uo_unique, left_on='Código da Unidade',
+                      right_on='uo_cod', how='left')
+
+        if 'Unidade Orçamentária' in df.columns:
+            df['uo_sigla'] = df['uo_sigla'].fillna(
+                df['Unidade Orçamentária'].astype(str))
+        else:
+            df['uo_sigla'] = df['uo_sigla'].fillna('')
+
+        df['Unidade Orçamentária_concat'] = df['Código da Unidade'] + \
+            ' - ' + df['uo_sigla'].astype(str)
+        df.drop(columns=['uo_cod'], inplace=True, errors='ignore')
+    elif 'Código da Unidade' in df.columns and 'Unidade Orçamentária' in df.columns:
         df['Unidade Orçamentária_concat'] = df['Código da Unidade'].astype(
             str) + ' - ' + df['Unidade Orçamentária'].astype(str)
+
+    # Concatenações da base LDO 2027 (Cruzamento com fonte_recurso.csv já filtrada em 2026)
+    if not df_fonte_recurso.empty and 'Fonte' in df.columns and 'fonte_cod' in df_fonte_recurso.columns:
+        df['Fonte_str'] = df['Fonte'].astype(str).str.strip()
+        df_fonte_recurso['fonte_cod_str'] = df_fonte_recurso['fonte_cod'].astype(
+            str).str.strip()
+
+        df_fr_unique = df_fonte_recurso[['fonte_cod_str', 'fonte_desc']].drop_duplicates(
+            subset=['fonte_cod_str'])
+
+        df = df.merge(df_fr_unique, left_on='Fonte_str',
+                      right_on='fonte_cod_str', how='left')
+        df['fonte_desc'] = df['fonte_desc'].fillna('')
+
+        df['Fonte_concat'] = df.apply(
+            lambda row: f"{row['Fonte']} - {row['fonte_desc']}" if str(
+                row['fonte_desc']).strip() != '' else str(row['Fonte']),
+            axis=1
+        )
+        df.drop(columns=['fonte_cod_str', 'Fonte_str'],
+                inplace=True, errors='ignore')
+    elif 'Fonte' in df.columns:
+        df['Fonte_concat'] = df['Fonte'].astype(str)
 
     if 'Classificação da Receita' in df.columns and 'Descrição da Receita' in df.columns:
         df['Classificação da Receita_concat'] = df['Classificação da Receita'].astype(
             str) + ' - ' + df['Descrição da Receita'].astype(str)
 
-    # Tratamento numérico para o Valor LDO
     if 'Valor LDO' in df.columns:
         if df['Valor LDO'].dtype == object:
             df['Valor LDO'] = df['Valor LDO'].astype(str).str.replace(
@@ -209,7 +302,6 @@ def load_analise_dcmefo(file_path):
         except:
             pass
 
-    # Colunas Concatenadas
     if 'uo_cod' in df.columns and 'uo_sigla' in df.columns:
         df['Unidade Orçamentária_concat'] = df['uo_cod'].astype(
             str) + ' - ' + df['uo_sigla'].astype(str)
@@ -227,11 +319,17 @@ ARQUIVO_RECEITA = 'data/receita_analise.csv'
 ARQUIVO_FONTE = 'data/fonte_analise.csv'
 ARQUIVO_ORCAMENTO = 'datapackages/ppo_2027/data/Orcamento_Receita.csv'
 ARQUIVO_ANALISE_DCMEFO = 'datapackages/tabelas_auxiliares/analise_dcmefo.csv'
+ARQUIVO_UO = 'datapackages/dados-aux-classificadores/data/uo.csv'
+ARQUIVO_FONTE_RECURSO = 'datapackages/dados-aux-classificadores/data/fonte_recurso.csv'
 
+# Carregamento executado em ordem de dependência
 df_auxiliar = load_aux_data(ARQUIVO_AUXILIAR)
+df_uo = load_uo_data(ARQUIVO_UO)
+df_fonte_recurso = load_fonte_recurso_data(ARQUIVO_FONTE_RECURSO)
 df_receita = load_data(ARQUIVO_RECEITA, df_auxiliar)
 df_fonte = load_data(ARQUIVO_FONTE, df_auxiliar)
-df_orcamento = load_orcamento_receita(ARQUIVO_ORCAMENTO, df_auxiliar)
+df_orcamento = load_orcamento_receita(
+    ARQUIVO_ORCAMENTO, df_auxiliar, df_uo, df_fonte_recurso)
 df_dcmefo_base = load_analise_dcmefo(ARQUIVO_ANALISE_DCMEFO)
 
 # -----------------------------------------------------------------------------
@@ -261,7 +359,6 @@ def aplicar_filtros_comuns(df, is_visao_geral=True):
     prefix = "vg" if is_visao_geral else "fr"
 
     opcoes_dcmefo = sorted(df['passivel_analise_dcmefo'].unique().tolist())
-    # Removido o default para iniciar vazio
     filtro_dcmefo = st.sidebar.multiselect(
         "Passível de análise DCMEFO?", opcoes_dcmefo, key=f"filtro_{prefix}_dcmefo")
 
@@ -304,7 +401,6 @@ def aplicar_filtros_comuns(df, is_visao_geral=True):
 
 
 def formatar_tabela_ptbr(df_filtrado, colunas_finais):
-    """Aplica o estilo de formatação brasileira (R$) nas colunas financeiras."""
     colunas_anos = ['2023', '2024', '2025',
                     '2026 Reest', '2027 LDO', 'Valor LDO']
     colunas_formatar = [col for col in colunas_anos if col in colunas_finais]
@@ -322,7 +418,6 @@ def formatar_tabela_ptbr(df_filtrado, colunas_finais):
 
 
 def limpar_filtros():
-    """Função callback para esvaziar visualmente os componentes do session_state."""
     for key in list(st.session_state.keys()):
         if key.startswith("filtro_"):
             st.session_state[key] = []
@@ -336,11 +431,8 @@ menu = st.sidebar.radio("Selecione a Página:", [
                         "Visão Geral", "Fonte de Recursos", "LDO 2027", "Análise DCMEFO"])
 
 st.sidebar.markdown("---")
-
-# Botão Limpar Filtros aciona o callback antes de recarregar a tela
 st.sidebar.button("🧹 Limpar Todos os Filtros",
                   on_click=limpar_filtros, use_container_width=True)
-
 st.sidebar.markdown("---")
 
 # -----------------------------------------------------------------------------
@@ -435,7 +527,6 @@ def tela_ldo_2027():
 
     opcoes_dcmefo = sorted(
         df_orcamento['passivel_analise_dcmefo'].unique().tolist())
-    # Removido o default para iniciar vazio
     filtro_dcmefo = st.sidebar.multiselect(
         "Passível de análise DCMEFO?", opcoes_dcmefo, key="filtro_ldo_dcmefo")
 
@@ -444,8 +535,8 @@ def tela_ldo_2027():
     filtro_uo_concat = st.sidebar.multiselect(
         "Unidade Orçamentária", opcoes_uo_concat, key="filtro_ldo_uo")
 
-    opcoes_fonte = sorted(df_orcamento['Fonte'].dropna().unique(
-    ).tolist()) if 'Fonte' in df_orcamento.columns else []
+    opcoes_fonte = sorted(df_orcamento['Fonte_concat'].dropna().unique(
+    ).tolist()) if 'Fonte_concat' in df_orcamento.columns else []
     filtro_fonte = st.sidebar.multiselect(
         "Fonte de Recursos", opcoes_fonte, key="filtro_ldo_fonte")
 
@@ -468,7 +559,8 @@ def tela_ldo_2027():
         df_filtrado = df_filtrado[df_filtrado['Unidade Orçamentária_concat'].isin(
             filtro_uo_concat)]
     if filtro_fonte:
-        df_filtrado = df_filtrado[df_filtrado['Fonte'].isin(filtro_fonte)]
+        df_filtrado = df_filtrado[df_filtrado['Fonte_concat'].isin(
+            filtro_fonte)]
     if filtro_classificacao:
         df_filtrado = df_filtrado[df_filtrado['Classificação da Receita_concat'].isin(
             filtro_classificacao)]
@@ -486,7 +578,9 @@ def tela_ldo_2027():
     df_display = pd.DataFrame()
     if 'Unidade Orçamentária_concat' in df_filtrado.columns:
         df_display['Unidade Orçamentária'] = df_filtrado['Unidade Orçamentária_concat']
-    if 'Fonte' in df_filtrado.columns:
+    if 'Fonte_concat' in df_filtrado.columns:
+        df_display['Fonte de Recursos'] = df_filtrado['Fonte_concat']
+    elif 'Fonte' in df_filtrado.columns:
         df_display['Fonte de Recursos'] = df_filtrado['Fonte']
     if 'Classificação da Receita_concat' in df_filtrado.columns:
         df_display['Classificação da Receita'] = df_filtrado['Classificação da Receita_concat']
