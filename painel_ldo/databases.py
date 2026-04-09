@@ -70,7 +70,7 @@ def build_df(datapackage, columns_to_use):
 def carrega_trata_dados():
 
     # Load, filter columns and concatenate siafi data
-    siafi_columns_to_use = ['ano', 'uo_cod', 'receita_cod', 'fonte_cod', 'receita_desc', 'receita_cod_formatado',
+    siafi_columns_to_use = ['ano', 'uo_cod', 'receita_cod', 'fonte_cod', 'receita_cod_formatado',
                             # vlr_previsto_inicial LOA, vlr_efetivado_ajustado o que arrecadou
                             'vlr_previsto_inicial', 'vlr_efetivado_ajustado']
 
@@ -132,14 +132,21 @@ def carrega_trata_dados():
 
     # Ajusta o valor painel para o ano de 2025
     valor_painel['valor_painel'] = np.where(
-        valor_painel['ano'].isin(
-            [ANO_REF_LDO-4, ANO_REF_LDO-3, ANO_REF_LDO-2]),
+        valor_painel['ano'].isin([ANO_REF_LDO-4, ANO_REF_LDO-3, ANO_REF_LDO-2]),
         valor_painel['vlr_efetivado_ajustado'],
-        np.where(valor_painel['ano'].str.startswith('siafi'), valor_painel['vlr_previsto_inicial'],
-                 np.where(valor_painel['ano'].str.startswith('reestimativa'), valor_painel['vlr_reest'],
-                          valor_painel['vlr_ldo']
-                          )
-                 )
+        np.where(
+            valor_painel['ano'] == ANO_REF_LDO,
+            valor_painel['vlr_ldo'],
+            np.where(
+                valor_painel['ano'].str.startswith('siafi'),
+                valor_painel['vlr_previsto_inicial'],
+                np.where(
+                    valor_painel['ano'].str.startswith('reestimativa'),
+                    valor_painel['vlr_reest'],
+                    np.nan
+                )
+            )
+        )
     )
 
     if not valor_painel.empty:
