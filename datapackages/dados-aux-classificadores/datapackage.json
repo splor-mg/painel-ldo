@@ -113,12 +113,12 @@
       }
     }
   ],
-  "updated_at": "2026-03-05T23:12:45",
+  "updated_at": "2026-03-27T07:27:06",
   "remote": {
     "host": "raw.githubusercontent.com",
     "user": "splor-mg",
     "repo": "dados-aux-classificadores",
     "ref": "main",
-    "sha": "db145ccb64122271d16ec99903790417279aa11e"
+    "sha": "8ad284c98e0e4361d40f6212c9023f20aac3259f"
   }
 }

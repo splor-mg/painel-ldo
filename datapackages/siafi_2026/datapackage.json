@@ -14,10 +14,10 @@
       "mediatype": "text/csv",
       "compression": "gz",
       "encoding": "utf-8",
-      "hash": "sha256:08cf30bb9bfa5da9d20c9fb99af9d49a3a8d13dc67c067bf7900918c32266ef0",
-      "bytes": 70479,
-      "fields": 12,
-      "rows": 2625,
+      "hash": "sha256:ab157a2b3af0a3b80220a772dc1371d0b607ace8bb2a9e047b7e10976c0a5f4c",
+      "bytes": 47143,
+      "fields": 11,
+      "rows": 3051,
       "schema": {
         "fields": [
           {
@@ -44,11 +44,6 @@
             "name": "receita_cod",
             "type": "integer",
             "source": "Classificação Receita - Código"
-          },
-          {
-            "name": "receita_desc",
-            "type": "string",
-            "source": "Classificação Receita - Descrição"
           },
           {
             "name": "receita_cod_formatado",
@@ -85,12 +80,12 @@
     }
   ],
   "owner_org": "secretaria-de-estado-de-planejamento-e-gestao-seplag",
-  "updated_at": "2026-03-31T10:46:01",
+  "updated_at": "2026-04-07T14:29:21",
   "remote": {
     "host": "raw.githubusercontent.com",
     "user": "splor-mg",
     "repo": "dados-armazem-siafi-2026",
     "ref": "main",
-    "sha": "4522e55a7ef6493a88455b71e0e8131ce86fa24e"
+    "sha": "c2b8562ac54edc6f1cc6731ff555bf55ed6f9725"
   }
 }

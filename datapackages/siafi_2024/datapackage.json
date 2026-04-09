@@ -12,9 +12,9 @@
       "mediatype": "text/csv",
       "compression": "gz",
       "encoding": "utf-8",
-      "hash": "sha256:3812f552b513b8268d7222628f485a63b42e6ff350311362a654da5563090aec",
-      "bytes": 198110,
-      "fields": 12,
+      "hash": "sha256:7c5af7ed38ca2e375e064abb3ce1f546112c2ac16960ad23c89059af6c9fbdc0",
+      "bytes": 143318,
+      "fields": 11,
       "rows": 9332,
       "schema": {
         "fields": [
@@ -42,11 +42,6 @@
             "name": "receita_cod",
             "type": "integer",
             "source": "Classificação Receita - Código"
-          },
-          {
-            "name": "receita_desc",
-            "type": "string",
-            "source": "Classificação Receita - Descrição"
           },
           {
             "name": "receita_cod_formatado",
@@ -82,12 +77,12 @@
       }
     }
   ],
-  "updated_at": "2025-02-06T11:50:10",
+  "updated_at": "2026-04-01T08:48:52",
   "remote": {
     "host": "raw.githubusercontent.com",
     "user": "splor-mg",
     "repo": "dados-armazem-siafi-2024",
     "ref": "main",
-    "sha": "fed0c465f1a77d9c8f5447b1ea69bf0bf0bc8ea7"
+    "sha": "c351209b7df1879075bf90fe1ce9dd392d7964e4"
   }
 }
