@@ -160,38 +160,50 @@ def carrega_trata_dados():
         exit(1)
 
 
-def cria_base_receita_analise(valor_painel):  # análise mais da DCAF
+
+def cria_base_receita_fonte_analise(valor_painel, tipo_base):
+
+    if tipo_base == 'receita':
+        group_columns = ['ano', 'uo_cod', 'receita_cod', 'fonte_cod']
+        nome_arquivo = 'data/receita_analise.csv'
+    elif tipo_base == 'fonte':
+        group_columns = ['ano', 'uo_cod', 'fonte_cod']
+        nome_arquivo = 'data/fonte_analise.csv'
+    else:
+        raise ValueError("A base deve ser do tipo 'receita' ou 'fonte'.")
 
     # TRATAMENTO DAS BASES
     # BASE CONVENIOS
     base_convenios = valor_painel[valor_painel['fonte_cod'].isin(
         fontes_convenios)]
-    base_convenios = base_convenios.groupby(['ano', 'uo_cod', 'fonte_cod'])[
+    base_convenios = base_convenios.groupby(group_columns)[
         'valor_painel'].sum().reset_index()
 
     # BASE DEMAIS FONTES
     base_demais = valor_painel[~valor_painel['fonte_cod'].isin(
         fontes_convenios)]
-    base_demais = base_demais.groupby(['ano', 'uo_cod', 'receita_cod', 'fonte_cod'])[
+    base_demais = base_demais.groupby(group_columns)[
         'valor_painel'].sum().reset_index()
+
 
     base_convenios = base_convenios.astype(
         {'uo_cod': pd.Int64Dtype(), 'fonte_cod': pd.Int64Dtype(), })
-    base_demais = base_demais.astype({'uo_cod': pd.Int64Dtype(
-    ), 'fonte_cod': pd.Int64Dtype(), 'receita_cod': pd.StringDtype()})
+    base_demais = base_demais.astype({'uo_cod': pd.Int64Dtype(), 'fonte_cod': pd.Int64Dtype()})
+
+    if 'receita_cod' in base_demais.columns:
+        base_demais = base_demais.astype({ 'receita_cod': pd.StringDtype()})
+        base_demais['receita_cod'] = base_demais['receita_cod'].fillna('-')
 
     # BASE ANALISE
     base_analise = pd.concat([base_convenios, base_demais], ignore_index=True)
-    base_analise['receita_cod'] = base_analise['receita_cod'].fillna('-')
-    base_analise = base_analise[['ano', 'uo_cod',
-                                 'receita_cod', 'fonte_cod', 'valor_painel']]
-
-    base_analise = base_analise.groupby(
-        ['ano', 'uo_cod', 'receita_cod', 'fonte_cod']).sum().reset_index()
+    filter_columns = group_columns.copy() + ['valor_painel']
+    base_analise = base_analise[filter_columns]
+    base_analise = base_analise.groupby(group_columns).sum().reset_index()
 
     # Pivot the table
+    pivot_columns = [col for col in group_columns if col != 'ano']
     base_analise = base_analise.pivot_table(
-        index=['uo_cod', 'receita_cod', 'fonte_cod'],
+        index=pivot_columns,
         columns='ano',
         values='valor_painel',
         aggfunc='sum'
@@ -200,173 +212,122 @@ def cria_base_receita_analise(valor_painel):  # análise mais da DCAF
     # Fill NaN values with 0 and round to 2 decimal places
     numeric_columns = base_analise.select_dtypes(include=[np.number]).columns
     numeric_columns = numeric_columns.drop(['uo_cod', 'fonte_cod'])
-
     base_analise[numeric_columns] = base_analise[numeric_columns].fillna(
         0).round(2)
+
     # Reorder columns based on specific order
-    column_order = ['uo_cod', 'receita_cod', 'fonte_cod', ANO_REF - 3, ANO_REF -
-                    2, ANO_REF - 1, f"reestimativa_{ANO_REF}", f"siafi_{ANO_REF}", ANO_REF_LDO]
+    if 'receita_cod' in base_analise.columns:
+        column_order = ['uo_cod', 'receita_cod', 'fonte_cod', ANO_REF - 3, ANO_REF -
+                        2, ANO_REF - 1, f"reestimativa_{ANO_REF}", f"siafi_{ANO_REF}", ANO_REF_LDO]
+    else:
+        column_order = ['uo_cod', 'fonte_cod', ANO_REF - 3, ANO_REF - 2,
+                    ANO_REF - 1, f"reestimativa_{ANO_REF}", f"siafi_{ANO_REF}", ANO_REF_LDO]
+
     base_analise = base_analise[column_order]
+
 
     # ALERTAS
     base_analise.loc[:, 'ano'] = ANO_REF
 
-    base_analise['CONVENIOS'] = is_convenios_rec(base_analise)
-    base_analise['INTRA_SAUDE'] = is_intra_saude_rec(base_analise)
+    # Parametros iniciais
+    cols_passado = [ANO_REF - 3, ANO_REF - 2, ANO_REF - 1]
+    media_passado = base_analise[cols_passado].sum(axis=1) / 3
+    max_passado = base_analise[cols_passado].max(axis=1)
+    min_passado = base_analise[cols_passado].min(axis=1)
 
-    # Create ALERTAS column with conditions
-    conditions = [
-        (base_analise['INTRA_SAUDE'] == True),
-        (base_analise['fonte_cod'].isin(fontes_convenios)),
-        ((base_analise['CONVENIOS'] == True) & ~
-         base_analise['fonte_cod'].isin(fontes_convenios)),
-        ((base_analise.iloc[:, 3] > 0) &
-         (base_analise.iloc[:, 4] > 0) &
-         (base_analise.iloc[:, 5] > 0) &
-         (base_analise.iloc[:, 7] == 0)),
-        (((base_analise.iloc[:, 4] > 0) & (base_analise.iloc[:, 7] == 0)) |
-         ((base_analise.iloc[:, 5] > 0) & (base_analise.iloc[:, 7] == 0))),
-        (
-            (base_analise.iloc[:, 7] > 0) &
-            ((base_analise.iloc[:, 3:6].sum(axis=1) / 3) > 0) &
-            (
+    if tipo_base == 'receita':
+        base_analise['CONVENIOS'] = is_convenios_rec(base_analise)
+        base_analise['INTRA_SAUDE'] = is_intra_saude_rec(base_analise)
+
+    # Dicionário de regras
+
+    regras_alertas = [
+
+        # ===== ALERTAS SÓ RECEITA =====
+        {
+            "condicao": lambda df: df['INTRA_SAUDE'] == True,
+            "alerta": "RECEITA REPASSE FES (LANÇAMENTO SPLOR)",
+            "aplica_em": ["receita"]
+        },
+        {
+            "condicao": lambda df: df['fonte_cod'].isin(fontes_convenios),
+            "alerta": "RECEITA INFORMADA PELA DCGCE/SEPLAG",
+            "aplica_em": ["receita"]
+        },
+        {
+            "condicao": lambda df: (df['CONVENIOS'] == True) & ~df['fonte_cod'].isin(fontes_convenios),
+            "alerta": "RECEITA DE CONVENIOS EM FONTE NAO ESPERADA",
+            "aplica_em": ["receita"]
+        },
+
+        # ===== ALERTAS COMUNS =====
+        {
+            "condicao": lambda df: (
+                (df[ANO_REF - 3] > 0) &
+                (df[ANO_REF - 2] > 0) &
+                (df[ANO_REF - 1] > 0) &
+                (df[ANO_REF_LDO] == 0)
+            ),
+            "alerta": "RECEITA NAO ESTIMADA",
+            "aplica_em": ["receita", "fonte"]
+        },
+        {
+            "condicao": lambda df: (
+                ((df[ANO_REF - 2] > 0) & (df[ANO_REF_LDO] == 0)) |
+                ((df[ANO_REF - 1] > 0) & (df[ANO_REF_LDO] == 0))
+            ),
+            "alerta": "ATENCAO",
+            "aplica_em": ["receita", "fonte"]
+        },
+        {
+            "condicao": lambda df: (
+                (df[ANO_REF_LDO] > 0) &
+                (media_passado > 0) &
                 (
-                    (base_analise.iloc[:, 7] > ((base_analise.iloc[:, 3:6].sum(axis=1) / 3) * 2)) &
-                    (base_analise.iloc[:, 7] > (
-                        1.2 * base_analise.iloc[:, 3:6].max(axis=1)))
-                ) |
-                (
-                    (base_analise.iloc[:, 7] < (base_analise.iloc[:, 3:6].sum(axis=1) / 3 / 2)) &
-                    (base_analise.iloc[:, 7] < (
-                        0.9 * base_analise.iloc[:, 3:6].min(axis=1)))
+                    (
+                        (df[ANO_REF_LDO] > (media_passado * 2)) &
+                        (df[ANO_REF_LDO] > (1.2 * max_passado))
+                    ) |
+                    (
+                        (df[ANO_REF_LDO] < (media_passado / 2)) &
+                        (df[ANO_REF_LDO] < (0.9 * min_passado))
+                    )
                 )
-            )
-        )
+            ),
+            "alerta": "VALOR DISCREPANTE",
+            "aplica_em": ["receita", "fonte"]
+        }
     ]
 
-    choices = [
-        "RECEITA REPASSE FES (LANÇAMENTO SPLOR)",
-        "RECEITA INFORMADA PELA DCGCE/SEPLAG",
-        "RECEITA DE CONVENIOS EM FONTE NAO ESPERADA",
-        "RECEITA NAO ESTIMADA",
-        "ATENCAO",
-        "VALOR DISCREPANTE"
-    ]
+    conditions = []
+    choices = []
+
+    for regra in regras_alertas:
+        if tipo_base in regra["aplica_em"]:
+            conditions.append(regra["condicao"](base_analise))
+            choices.append(regra["alerta"])
 
     base_analise['ALERTAS'] = np.select(conditions, choices, default="OK")
 
-    # Adiciona descrições
+
+    # Adiciona descrições e remove colunas desnecessárias
     base_analise['ano'] = ANO_REF
-    base_analise = adiciona_desc(
-        base_analise, ['RECEITA_COD', 'UO_COD', 'FONTE_COD'], overwrite=True)
+
+    if tipo_base == 'receita':
+        # breakpoint()
+        base_analise = adiciona_desc(base_analise, ['RECEITA_COD', 'UO_COD', 'FONTE_COD'], overwrite=True)
+        base_analise = base_analise.drop(['ANO', 'INTRA_SAUDE', 'CONVENIOS'], axis=1)
+        # Retira critérios que podem gerar alertas por não serem mais executados
+        base_analise = base_analise[~((base_analise['UO_COD'] == 4461) | (base_analise['FONTE_COD'] == 58))]
+    else:
+        base_analise = adiciona_desc(base_analise, ['UO_COD', 'FONTE_COD'], overwrite=True)
+        base_analise = base_analise.drop(['ANO'], axis=1)
+
+
     base_analise.columns = base_analise.columns.str.lower()
-
-    # Remove colunas não necessárias
-    base_analise = base_analise.drop(
-        ['ano', 'intra_saude', 'convenios'], axis=1)
-
-    # Verificar se é necessário filtrar
-    base_analise = base_analise[
-        ~((base_analise['uo_cod'] == 4461) | (base_analise['fonte_cod'] == 58))
-    ]
-
     base_analise.insert(0, 'ano_ref', ANO_REF_LDO)
 
     # Create data directory if it doesn't exist
     os.makedirs('data', exist_ok=True)
-    base_analise.to_csv("data/receita_analise.csv", index=False)
+    base_analise.to_csv(nome_arquivo, index=False)
 
-
-def cria_base_fonte_analise(valor_painel):
-
-    # TRATAMENTO DAS BASES
-    # BASE CONVENIOS
-
-    base_fonte_agg = valor_painel.groupby(['ano', 'uo_cod', 'fonte_cod'])[
-        'valor_painel'].sum().reset_index()
-
-    # Pivot the table
-    base_fonte_agg = base_fonte_agg.pivot_table(
-        index=['uo_cod', 'fonte_cod'],
-        columns='ano',
-        values='valor_painel',
-        aggfunc='sum'
-    ).reset_index()
-
-    # Fill NaN values with 0 and round to 2 decimal places
-    numeric_columns = base_fonte_agg.select_dtypes(include=[np.number]).columns
-    numeric_columns = numeric_columns.drop(['uo_cod', 'fonte_cod'])
-
-    base_fonte_agg[numeric_columns] = base_fonte_agg[numeric_columns].fillna(
-        0).round(2)
-    # Reorder columns based on specific order
-    column_order = ['uo_cod', 'fonte_cod', ANO_REF - 3, ANO_REF - 2,
-                    ANO_REF - 1, f"reestimativa_{ANO_REF}", f"siafi_{ANO_REF}", ANO_REF_LDO]
-    base_fonte_agg = base_fonte_agg[column_order]
-
-    # ALERTAS
-    base_fonte_agg.loc[:, 'ano'] = ANO_REF
-    # base_fonte_agg['CONVENIOS'] = is_convenios_rec(base_fonte_agg)
-    # base_fonte_agg['INTRA_SAUDE'] = is_intra_saude_rec(base_fonte_agg)
-
-    # Create ALERTAS column with conditions
-    conditions = [
-        # (base_fonte_agg['INTRA_SAUDE'] == True),
-        # (base_fonte_agg['fonte_cod'].isin(fontes_convenios)),
-        # ((base_fonte_agg['CONVENIOS'] == True) & ~base_fonte_agg['fonte_cod'].isin(fontes_convenios)),
-        ((base_fonte_agg.iloc[:, 2] > 0) &
-         (base_fonte_agg.iloc[:, 3] > 0) &
-         (base_fonte_agg.iloc[:, 4] > 0) &
-         (base_fonte_agg.iloc[:, 6] == 0)),
-
-        (((base_fonte_agg.iloc[:, 3] > 0) & (base_fonte_agg.iloc[:, 6] == 0)) |
-         ((base_fonte_agg.iloc[:, 4] > 0) & (base_fonte_agg.iloc[:, 6] == 0))),
-
-        (
-            (base_fonte_agg.iloc[:, 6] > 0) &
-            ((base_fonte_agg.iloc[:, 2:5].sum(axis=1) / 3) > 0) &
-            (
-                (
-                    (base_fonte_agg.iloc[:, 6] > ((base_fonte_agg.iloc[:, 2:5].sum(axis=1) / 3) * 2)) &
-                    (base_fonte_agg.iloc[:, 6] > (
-                        1.2 * base_fonte_agg.iloc[:, 2:5].max(axis=1)))
-                ) |
-                (
-                    (base_fonte_agg.iloc[:, 6] < (base_fonte_agg.iloc[:, 2:5].sum(axis=1) / 3 / 2)) &
-                    (base_fonte_agg.iloc[:, 6] < (
-                        0.9 * base_fonte_agg.iloc[:, 2:5].min(axis=1)))
-                )
-            )
-        )
-    ]
-
-    choices = [
-        # "Receita de repasse do FES é lançada pela SPLOR",
-        # "Receita a ser informada pela DCGCE/SEPLAG",
-        # "RECEITA DE CONVENIOS EM FONTE NAO ESPERADA",
-        "RECEITA NAO ESTIMADA",
-        "ATENCAO",
-        "VALOR DISCREPANTE"
-    ]
-
-    base_fonte_agg['ALERTAS'] = np.select(conditions, choices, default="OK")
-
-    # Adiciona descrições
-    base_fonte_agg['ano'] = ANO_REF
-    base_fonte_agg = adiciona_desc(
-        base_fonte_agg, ['UO_COD', 'FONTE_COD'], overwrite=True)
-    base_fonte_agg.columns = base_fonte_agg.columns.str.lower()
-
-    # Remove colunas não necessárias
-    base_fonte_agg = base_fonte_agg.drop(['ano'], axis=1)
-
-    # Verificar se é necessário filtrar
-    # base_fonte_agg = base_fonte_agg[
-    #    ~((base_fonte_agg['uo_cod'] == 4461) | (base_fonte_agg['fonte_cod'] == 58))
-    # ]
-
-    base_fonte_agg.insert(0, 'ano_ref', ANO_REF_LDO)
-
-    # Create data directory if it doesn't exist
-    os.makedirs('data', exist_ok=True)
-    base_fonte_agg.to_csv("data/fonte_analise.csv", index=False)

@@ -1,14 +1,14 @@
 from dotenv import load_dotenv
 import argparse
 import subprocess
-from databases import carrega_trata_dados, cria_base_fonte_analise, cria_base_receita_analise, build_toml
+from databases import carrega_trata_dados, cria_base_receita_fonte_analise, build_toml
 
 load_dotenv()
 
 def build_command():
     valor_painel = carrega_trata_dados()
-    cria_base_receita_analise(valor_painel=valor_painel)
-    cria_base_fonte_analise(valor_painel=valor_painel)
+    cria_base_receita_fonte_analise(valor_painel=valor_painel, tipo_base='receita')
+    cria_base_receita_fonte_analise(valor_painel=valor_painel, tipo_base='fonte')
 
 
 def extract_command():
