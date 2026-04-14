@@ -164,11 +164,11 @@ def carrega_trata_dados():
 def cria_base_receita_fonte_analise(valor_painel, tipo_base):
 
     if tipo_base == 'receita':
-        groupColumns = ['ano', 'uo_cod', 'receita_cod', 'fonte_cod']
-        nomeArquivo = 'data/receita_analise.csv'
+        group_columns = ['ano', 'uo_cod', 'receita_cod', 'fonte_cod']
+        nome_arquivo = 'data/receita_analise.csv'
     elif tipo_base == 'fonte':
-        groupColumns = ['ano', 'uo_cod', 'fonte_cod']
-        nomeArquivo = 'data/fonte_analise.csv'
+        group_columns = ['ano', 'uo_cod', 'fonte_cod']
+        nome_arquivo = 'data/fonte_analise.csv'
     else:
         raise ValueError("A base deve ser do tipo 'receita' ou 'fonte'.")
 
@@ -176,16 +176,16 @@ def cria_base_receita_fonte_analise(valor_painel, tipo_base):
     # BASE CONVENIOS
     base_convenios = valor_painel[valor_painel['fonte_cod'].isin(
         fontes_convenios)]
-    base_convenios = base_convenios.groupby(['ano', 'uo_cod', 'fonte_cod'])[
+    base_convenios = base_convenios.groupby(group_columns)[
         'valor_painel'].sum().reset_index()
 
     # BASE DEMAIS FONTES
     base_demais = valor_painel[~valor_painel['fonte_cod'].isin(
         fontes_convenios)]
-    base_demais = base_demais.groupby(groupColumns)[
+    base_demais = base_demais.groupby(group_columns)[
         'valor_painel'].sum().reset_index()
-    
-    
+
+
     base_convenios = base_convenios.astype(
         {'uo_cod': pd.Int64Dtype(), 'fonte_cod': pd.Int64Dtype(), })
     base_demais = base_demais.astype({'uo_cod': pd.Int64Dtype(), 'fonte_cod': pd.Int64Dtype()})
@@ -193,17 +193,17 @@ def cria_base_receita_fonte_analise(valor_painel, tipo_base):
     if 'receita_cod' in base_demais.columns:
         base_demais = base_demais.astype({ 'receita_cod': pd.StringDtype()})
         base_demais['receita_cod'] = base_demais['receita_cod'].fillna('-')
-    
+
     # BASE ANALISE
     base_analise = pd.concat([base_convenios, base_demais], ignore_index=True)
-    filterColumns = groupColumns.copy() + ['valor_painel']
-    base_analise = base_analise[filterColumns]
-    base_analise = base_analise.groupby(groupColumns).sum().reset_index()
+    filter_columns = group_columns.copy() + ['valor_painel']
+    base_analise = base_analise[filter_columns]
+    base_analise = base_analise.groupby(group_columns).sum().reset_index()
 
     # Pivot the table
-    pivotColumns = [col for col in groupColumns if col != 'ano']
+    pivot_columns = [col for col in group_columns if col != 'ano']
     base_analise = base_analise.pivot_table(
-        index=pivotColumns,
+        index=pivot_columns,
         columns='ano',
         values='valor_painel',
         aggfunc='sum'
@@ -214,15 +214,15 @@ def cria_base_receita_fonte_analise(valor_painel, tipo_base):
     numeric_columns = numeric_columns.drop(['uo_cod', 'fonte_cod'])
     base_analise[numeric_columns] = base_analise[numeric_columns].fillna(
         0).round(2)
-    
+
     # Reorder columns based on specific order
     if 'receita_cod' in base_analise.columns:
-        columnOrder = ['uo_cod', 'receita_cod', 'fonte_cod', ANO_REF - 3, ANO_REF -
+        column_order = ['uo_cod', 'receita_cod', 'fonte_cod', ANO_REF - 3, ANO_REF -
                         2, ANO_REF - 1, f"reestimativa_{ANO_REF}", f"siafi_{ANO_REF}", ANO_REF_LDO]
     else:
-        columnOrder = ['uo_cod', 'fonte_cod', ANO_REF - 3, ANO_REF - 2,
+        column_order = ['uo_cod', 'fonte_cod', ANO_REF - 3, ANO_REF - 2,
                     ANO_REF - 1, f"reestimativa_{ANO_REF}", f"siafi_{ANO_REF}", ANO_REF_LDO]
-    
+
     base_analise = base_analise[column_order]
 
 
@@ -240,7 +240,7 @@ def cria_base_receita_fonte_analise(valor_painel, tipo_base):
         base_analise['INTRA_SAUDE'] = is_intra_saude_rec(base_analise)
 
     # Dicionário de regras
-    
+
     regras_alertas = [
 
         # ===== ALERTAS SÓ RECEITA =====
@@ -298,36 +298,36 @@ def cria_base_receita_fonte_analise(valor_painel, tipo_base):
             "aplica_em": ["receita", "fonte"]
         }
     ]
-    
+
     conditions = []
     choices = []
 
     for regra in regras_alertas:
         if tipo_base in regra["aplica_em"]:
-            conditions.append(regra["cond"](base_analise))
-            choices.append(regra["label"])
-    
+            conditions.append(regra["condicao"](base_analise))
+            choices.append(regra["alerta"])
+
     base_analise['ALERTAS'] = np.select(conditions, choices, default="OK")
 
-   
+
     # Adiciona descrições e remove colunas desnecessárias
     base_analise['ano'] = ANO_REF
 
     if tipo_base == 'receita':
+        # breakpoint()
         base_analise = adiciona_desc(base_analise, ['RECEITA_COD', 'UO_COD', 'FONTE_COD'], overwrite=True)
-        base_analise = base_analise.drop(['ano', 'intra_saude', 'convenios'], axis=1)
+        base_analise = base_analise.drop(['ANO', 'INTRA_SAUDE', 'CONVENIOS'], axis=1)
         # Retira critérios que podem gerar alertas por não serem mais executados
-        base_analise = base_analise[~((base_analise['uo_cod'] == 4461) | (base_analise['fonte_cod'] == 58))
-    ]
+        base_analise = base_analise[~((base_analise['UO_COD'] == 4461) | (base_analise['FONTE_COD'] == 58))]
     else:
         base_analise = adiciona_desc(base_analise, ['UO_COD', 'FONTE_COD'], overwrite=True)
-        base_analise = base_analise.drop(['ano'], axis=1)
-    
+        base_analise = base_analise.drop(['ANO'], axis=1)
+
 
     base_analise.columns = base_analise.columns.str.lower()
     base_analise.insert(0, 'ano_ref', ANO_REF_LDO)
 
     # Create data directory if it doesn't exist
     os.makedirs('data', exist_ok=True)
-    base_analise.to_csv(nomeArquivo, index=False)
+    base_analise.to_csv(nome_arquivo, index=False)
 
