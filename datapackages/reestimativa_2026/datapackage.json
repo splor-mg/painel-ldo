@@ -11,10 +11,10 @@
       "format": "csv",
       "mediatype": "text/csv",
       "encoding": "utf-8",
-      "hash": "sha256:255ff4c640ae831f6ba25d15289537c41ed9d71dd133fd04a8132fe0e419702a",
-      "bytes": 1846895,
+      "hash": "sha256:5bbc5facb713f16b243e8bf0bf2c5a21bc0b40d43fdbc6981b2bb6f19d362285",
+      "bytes": 2455378,
       "fields": 17,
-      "rows": 9345,
+      "rows": 12521,
       "schema": {
         "fields": [
           {
@@ -106,12 +106,12 @@
       }
     }
   ],
-  "updated_at": "2026-04-14T10:11:31",
+  "updated_at": "2026-04-15T10:12:35",
   "remote": {
     "host": "raw.githubusercontent.com",
     "user": "splor-mg",
     "repo": "dados-reestimativa-2026",
     "ref": "main",
-    "sha": "2701541aa3e35e2a0b7dc5365b824276e1c09cc5"
+    "sha": "9a0532c36b580af50643e0059b090c49adbee017"
   }
 }
