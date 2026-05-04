@@ -1,91 +1,129 @@
-# Ferramenta de Processamento de Dados do Painel LDO
+# Painel LDO — Observable Framework
 
-Esta ferramenta processa dados financeiros e indicadores sobre a qualidade dos dados presentes e os disponibiliza para serem consumidos pelo painel-ldo ou outras ferramentas.
-A extração de dados é feita dos dados de execução financeira e orçamentária dos dois últimos anos (execucao), dados de reestimativa fiscal do ano corrente (reest), previsão inicial da Lei Orçamentária Anual do ano corrente e dados da Lei de Diretrizes Orçamentárias (LDO) lançados no Sistema Orçamentário (SISOR) do próximo exercício.
+Versão estática do Painel LDO construída com [Observable Framework](https://observablehq.com/framework/).
 
-## Recursos
+## Por que Observable Framework?
 
-- Extração de dados usando a [ferramenta DPM](https://github.com/splor-mg/dpm).
-- Processamento e análise de dados financeiros.
-- Geração de arquivos de saída estruturados para análise de receitas e fontes.
-- Transformação e processamento automatizado de dados.
+Neste README vou inserir algumas comparações entre ferramentas que estou realizando testes considerando algumas premissas. Sendo elas:
 
-## Pré-requisitos
+1. Open source;
+2. Site estático;
+3. Github Pages;
+4. Filtros interativos;
+5. Sem servidor;
+6. Markdown nativo;
+7. Integração com Python;
+8. Gratuito.
 
-- Python 3.x.
-- Poetry.
-- Ferramenta [dpm](https://github.com/splor-mg/dpm).
-- Pacote [R relatórios](https://github.com/splor-mg/relatorios) instalado.
-- Variaveis de ambiente `R_HOME` e `GH_TOKEN` configuradas no arquivo `.env`.
-
-## Instalações R
-
-Os comandos abaixo deverão ser executados apenas a primeira vez (durante o setup do repositório na máquina).
-
-Antes de rodar os comandos é necessário ter variável de ambiente GH_TOKEN configurada corretamente no arquivo .env.
-Para isso, gere um token (fine-granted) nas configurações de GitHub com todos os repositórios necessários para a atualização, tais como:
-
-- [Pacote Relatório (R)](https://github.com/splor-mg/relatorios).
-- [dados-armazem-siafi](https://github.com/orgs/splor-mg/repositories?q=dados-armazem-siafi) com o(s) ano(s) correspondente(s) às necessidades.
-- [dados-reestimativa](https://github.com/orgs/splor-mg/repositories?q=dados-reestimativa) com o(s) ano(s) correspondente(s) às necessidades.
-- dados-ppo (ainda manual).
-
+## Estrutura do Projeto
 
 ```
-export $(grep -v '^#' .env | xargs)
-Rscript -e "dir.create('~/R', showWarnings = FALSE); .libPaths('~/R'); install.packages('remotes', repos='https://cloud.r-project.org')"
-Rscript -e ".libPaths('~/R'); remotes::install_github('splor-mg/relatorios', auth_token = Sys.getenv('GH_TOKEN'))"
-export R_LIBS_USER=~/R # Necessário para rodar os comandos task extract e task build
+painel-ldo-observable/
+├── observablehq.config.js   # Configuração: título, páginas, sidebar
+├── package.json
+├── src/
+│   ├── index.md             # Página: Visão Geral
+│   ├── fonte-recursos.md    # Página: Fonte de Recursos
+│   ├── ldo-2027.md          # Página: LDO 2027
+│   └── data/
+│       ├── receita.json     # Dados pré-processados
+│       ├── fonte.json
+│       └── ldo2027.json
 ```
 
-## Instalação Python
-
-1. Clone este repositório:
+## Como Rodar Localmente
 
 ```bash
-git clone https://github.com/splor-mg/painel-ldo.git
-cd painel-ldo
+# Instalar dependências
+npm install
+
+# Servidor de desenvolvimento com hot reload
+npm run dev
+# Acesse: http://localhost:3000
+
+# Gerar build estático
+npm run build
+# Saída em: dist/
 ```
 
-2. Instale as dependências Python:
+## Deploy no GitHub Pages
 
-```bash
-poetry install
+Adicione este workflow em `.github/workflows/deploy.yml`:
+
+```yaml
+name: Deploy to GitHub Pages
+on:
+  push:
+    branches: [main]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run build
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: dist
 ```
 
-## Atualizando os dados
+## Integração com Poetry (Pipeline de Dados)
 
-1. Crie o arquivo `data.toml`[^1]:
+O Observable Framework pode consumir dados gerados pelo pipeline Python existente.
+Adicione um data loader em `src/data/receita.json.py`:
 
-```bash
-task toml
+```python
+# src/data/receita.json.py
+# Este arquivo é executado pelo Observable antes do build
+import sys
+sys.path.insert(0, "../../")
+from painel_ldo.databases import ...
+import json
+# gere o JSON e print para stdout
+print(json.dumps(dados))
 ```
 
-[^1]: Arquivo `data.toml` necessário para execução dos comandos `task extract` e `task build` deverá ser gerado dinamicamente via comando `task toml`.
+Ou simplesmente rode `task build` do Poetry antes do `npm run build`.
 
-2. Extraia os dados:
+## Comparação de Ferramentas
 
-```bash
-task extract
-```
+### Base
+| Critério        | Observable | Evidence | Marimo | Panel | Quarto | Streamlit |
+|----------------|------------|----------|--------|-------|--------|-----------|
+| Open source     | Sim        | Sim      | Sim    | Sim   | Sim    | Sim       |
+| Gratuito        | Sim        | Sim      | Sim    | Sim   | Sim    | Sim       |
 
-3. Atualize os arquivos de dados (pasta `data/`):
+### Deploy e Infraestrutura
+| Critério        | Observable | Evidence | Marimo | Panel | Quarto | Streamlit |
+|----------------|------------|----------|--------|-------|--------|-----------|
+| Site estático   | Sim        | Sim      | Sim    | Sim   | Sim    | Não       |
+| GitHub Pages    | Sim        | Sim      | Sim    | Sim   | Sim    | Não       |
+| Sem servidor    | Sim        | Sim      | Sim    | Sim   | Sim    | Não       |
 
-```bash
-task build
-```
+### Desenvolvimento
+| Critério                  | Observable | Evidence | Marimo | Panel | Quarto | Streamlit |
+|--------------------------|------------|----------|--------|-------|--------|-----------|
+| Markdown/Python nativo   | Sim        | Sim      | Sim    | Sim   | Sim    | Não       |
+| Filtros interativos      | Alto       | Alto     | Alto   | Alto  | Médio  | Alto      |
+| Python puro (sem JS)     | Médio      | Médio    | Alto   | Alto  | Médio  | Alto      |
+| Integração Poetry        | Sim        | Médio    | Alto   | Sim   | Sim    | Sim       |
 
-4. Rode tudo de uma única vez
+### Tecnologias
+| Critério        | Observable | Evidence | Marimo | Panel | Quarto | Streamlit |
+|----------------|------------|----------|--------|-------|--------|-----------|
+| Pyodide/WASM<sup>1</sup>   | Não        | Não      | Sim    | Sim   | Médio  | Não       |
 
-Se preferir rodar os comandos em sequência, substitua os comandos acima por:
+---
 
-```bash
-task painel
-```
+### Legenda
 
-## Arquivos de Saída
+- **Sim**: suporte completo  
+- **Não**: não suportado  
+- **Médio**: suporte parcial / com limitações  
+- **Alto**: suporte forte / bem integrado
 
-A ferramenta gera os seguintes arquivos de saída na pasta `data/`:
-
-- `fonte_analise.csv` e `fonte_analise.xlsx`: Dados de análise de fontes.
-- `receita_analise.csv` e `receita_analise.xlsx`: Dados de análise de receitas.
+##### 1. _Pyodide é uma distribuição do interpretador Python (CPython) compilada para WebAssembly (WASM)/Emscripten, permitindo executar código Python diretamente no navegador ou Node.js, sem servidor. Ele oferece alta interoperabilidade com JavaScript, acesso ao DOM e suporte a bibliotecas científicas como NumPy, Pandas e Matplotlib._
