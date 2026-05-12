@@ -11,10 +11,10 @@
       "format": "csv",
       "mediatype": "text/csv",
       "encoding": "utf-8",
-      "hash": "sha256:4fddf06f95660c8a04ad4952ded51469a777650053e2543107d797e04d7e8861",
-      "bytes": 2524241,
+      "hash": "sha256:fb59d64b17f2c37c4a8ca3442e23f6fc7dfe49532f724d43c97badf37228b372",
+      "bytes": 2524530,
       "fields": 17,
-      "rows": 12640,
+      "rows": 12641,
       "schema": {
         "fields": [
           {
@@ -48,9 +48,9 @@
             "source": "RECEITA_COD"
           },
           {
-            "name": "receita_desc",
+            "name": "receit_desc",
             "type": "string",
-            "source": "RECEITA_DESC"
+            "source": "RECEIT_DESC"
           },
           {
             "name": "fonte_cod",
@@ -106,12 +106,12 @@
       }
     }
   ],
-  "updated_at": "2026-04-24T10:17:56",
+  "updated_at": "2026-05-12T11:15:19",
   "remote": {
     "host": "raw.githubusercontent.com",
     "user": "splor-mg",
     "repo": "dados-reestimativa-2026",
     "ref": "main",
-    "sha": "e6014fc786f4f051cb7285ca32e4a3f642342f59"
+    "sha": "6776ce9353b2bb687bbd0e49134e44298c00f2e7"
   }
 }
