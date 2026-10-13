@@ -9,13 +9,13 @@ readme = 'README.md'
 requires-python = '>=3.13,<4.0'
 dependencies = [
     'taskipy (>=1.14.1,<2.0.0)',
-    "python-dotenv (>=1.2.1,<2.0.0)",
-    "pandas (>=2.0.0)",
-    "openpyxl (>=3.1.0)",
-    "dpm @ git+https://github.com/splor-mg/dpm.git",
-    "rpy2 (==3.5.12)",
-    "tomli-w (>=1.2.0,<2.0.0)",
-    "streamlit (>=1.55.0,<2.0.0)",
+    'python-dotenv (>=1.2.1,<2.0.0)',
+    'pandas (>=2.0.0)',
+    'openpyxl (>=3.1.0)',
+    'dpm @ git+https://github.com/splor-mg/dpm.git',
+    'rpy2 (==3.5.12)',
+    'tomli-w (>=1.2.0,<2.0.0)',
+    'streamlit (>=1.55.0,<2.0.0)',
 ]
 
 
