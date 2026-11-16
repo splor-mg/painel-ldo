@@ -14,10 +14,10 @@
       "mediatype": "text/csv",
       "compression": "gz",
       "encoding": "utf-8",
-      "hash": "sha256:d1daece59dae987612e062ce1f135eb0fac2538ca866ff29c73d0894f48eb53d",
-      "bytes": 134596,
+      "hash": "sha256:e341a1595e160d0b529a2e96d492f8217ff447191c34618d0e05d78ccb94c322",
+      "bytes": 135033,
       "fields": 11,
-      "rows": 8636,
+      "rows": 8668,
       "schema": {
         "fields": [
           {
@@ -80,12 +80,12 @@
     }
   ],
   "owner_org": "secretaria-de-estado-de-planejamento-e-gestao-seplag",
-  "updated_at": "2026-11-13T17:30:31",
+  "updated_at": "2026-11-16T20:00:32",
   "remote": {
     "host": "raw.githubusercontent.com",
     "user": "splor-mg",
     "repo": "dados-armazem-siafi-2026",
     "ref": "main",
-    "sha": "020f5f762a161d337769a4c94cda2f5b62760365"
+    "sha": "c74cc1d4a869ed38039dae7b5ad108a8c2675956"
   }
 }
